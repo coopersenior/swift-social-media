@@ -16,6 +16,7 @@ class PostGridViewModel: ObservableObject {
     
     init(user: User) {
         self.user = user
+        Task{ try await fetchUserPosts() }
         listenToUserPosts()
     }
     

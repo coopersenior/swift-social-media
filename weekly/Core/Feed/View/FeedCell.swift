@@ -14,12 +14,14 @@ struct FeedCell: View {
     @State private var isLiked = false
     @State private var likes: Int
     @State private var showHeart = false
+    @State private var user: User?
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
     init(post: Post) {
         self.post = post
         _likes = State(initialValue: post.likes)
+        
     }
     
     private var timeElapsed: String {
@@ -33,7 +35,7 @@ struct FeedCell: View {
         ScrollView {
             VStack {
                 // Image and username
-                if let user = post.user {
+                if let user = user {
                     NavigationLink(destination: ProfileView(user: user)) {
                         HStack {
                             CircularProfileImageView(user: user, size: .xSmall)
@@ -134,7 +136,7 @@ struct FeedCell: View {
                 
                 // Caption label
                 HStack {
-                    Text("\(post.user?.username ?? "") ").fontWeight(.semibold) +
+                    Text("\(user?.username ?? "") ").fontWeight(.semibold) +
                     Text(post.caption ?? "")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -157,6 +159,11 @@ struct FeedCell: View {
                 Task {
                     if try await viewModel.fetchLikeStatus(postId: post.id) {
                         isLiked = true
+                    }
+                    do {
+                        self.user = try await UserService.fetchUser(withUid: post.ownerUid)
+                    } catch {
+                        print("Failed to fetch user: \(error)")
                     }
                 }
             }
