@@ -21,7 +21,6 @@ struct FeedCell: View {
     init(post: Post) {
         self.post = post
         _likes = State(initialValue: post.likes)
-        
     }
     
     private var timeElapsed: String {
@@ -49,6 +48,13 @@ struct FeedCell: View {
                         .padding(.leading, 8)
                     }
                     .foregroundStyle(.black)
+                } else {
+                    // Empty space with margin so view doesnt change after loading
+                    HStack {
+                        Spacer()
+                    }
+                    .frame(height: 40)
+                    .padding(.leading, 8)
                 }
                 
                 // Post image
@@ -154,17 +160,17 @@ struct FeedCell: View {
                 
                 Spacer()
             }
-            .onAppear {
-                // Fetch like status on load
-                Task {
-                    if try await viewModel.fetchLikeStatus(postId: post.id) {
-                        isLiked = true
-                    }
-                    do {
-                        self.user = try await UserService.fetchUser(withUid: post.ownerUid)
-                    } catch {
-                        print("Failed to fetch user: \(error)")
-                    }
+        }
+        .onAppear {
+            // Fetch like status on load
+            Task {
+                if try await viewModel.fetchLikeStatus(postId: post.id) {
+                    isLiked = true
+                }
+                do {
+                    self.user = try await UserService.fetchUser(withUid: post.ownerUid)
+                } catch {
+                    print("Failed to fetch user: \(error)")
                 }
             }
         }
