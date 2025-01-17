@@ -15,6 +15,7 @@ struct FeedCell: View {
     @State private var likes: Int
     @State private var showHeart = false
     @State private var user: User?
+    @State private var scale: CGFloat = 1.0
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
@@ -62,6 +63,17 @@ struct FeedCell: View {
                     .resizable()
                     .scaledToFit()
                     .clipShape(Rectangle())
+                    .scaleEffect(scale)
+                    .gesture(
+                        MagnificationGesture()
+                            .onChanged { value in
+                                scale = max(1.0, value.magnitude)
+                            }
+                            .onEnded { _ in
+                                scale = 1.0
+                            }
+                    )
+                    .clipped()
                     .onTapGesture(count: 2) {
                         impactFeedbackGenerator.prepare()
                         impactFeedbackGenerator.impactOccurred()
