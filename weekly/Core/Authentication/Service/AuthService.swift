@@ -27,8 +27,8 @@ class AuthService {
             let result = try await Auth.auth().signIn(withEmail: email, password: password)
             self.userSession = result.user
             try await loadUserData()
-        } catch {
-            print("DEBUG: Failed to log in with error \(error.localizedDescription)")
+        } catch let error as NSError {
+            throw error
         }
     }
     

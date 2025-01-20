@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseAuth
 
 class RegistrationViewModel: ObservableObject {
     @Published var username = ""
@@ -19,5 +20,15 @@ class RegistrationViewModel: ObservableObject {
         username = ""
         email = ""
         password = ""
+    }
+    
+    func sendPasswordResetEmail(to email: String, completion: @escaping (Result<String, Error>) -> Void) {
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                completion(.failure(error)) 
+            } else {
+                completion(.success("Password reset email sent successfully to \(email)."))
+            }
+        }
     }
 }

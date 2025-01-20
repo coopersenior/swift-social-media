@@ -11,6 +11,7 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @StateObject var viewModel = LoginViewModel()
+    @State private var incorrectLoginDetails = false
     
     var body: some View {
         NavigationStack {
@@ -34,8 +35,17 @@ struct LoginView: View {
                         .modifier(TextFieldModifier())
                 }
                 
-                Button {
-                    print("show forgot password")
+                if incorrectLoginDetails {
+                    Text("Email or password is incorrect!")
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 10)
+                }
+                
+                NavigationLink {
+                    ForgotPasswordView()
+                        .navigationBarBackButtonHidden()
                 } label: {
                     Text("Forgot Password?")
                         .font(.footnote)
@@ -44,9 +54,17 @@ struct LoginView: View {
                         .padding(.trailing, 28)
                 }
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                
+
                 Button {
-                    Task { try await viewModel.signIn() }
+                    Task {
+                        do {
+                            // Attempt to sign in
+                            try await viewModel.signIn()
+                        } catch {
+                            print("catch")
+                            incorrectLoginDetails = true
+                        }
+                    }
                 } label: {
                     Text("Login")
                         .font(.subheadline)
@@ -76,6 +94,9 @@ struct LoginView: View {
                 }
                 .padding(.vertical, 16)
             }
+        }
+        .onAppear() {
+            incorrectLoginDetails = false
         }
     }
 }
