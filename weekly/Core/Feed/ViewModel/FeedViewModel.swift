@@ -8,6 +8,7 @@
 import Foundation
 import Firebase
 import FirebaseAuth
+import FirebaseStorage
 
 class FeedViewModel: ObservableObject {
     @Published var posts = [Post]()
@@ -108,4 +109,47 @@ class FeedViewModel: ObservableObject {
     func stopListening() {
         postsListener?.remove()
     }
+    
+    func deletePost(postId: String) async throws {
+        // Reference to the specific post document
+        let postRef = Firestore.firestore().collection("posts").document(postId)
+        
+        // Fetch the post document to get the imageUrl
+        let snapshot = try await postRef.getDocument()
+        guard let postData = snapshot.data(),
+              let imageUrl = postData["imageUrl"] as? String else {
+            throw NSError(domain: "DeletePostError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Post or image URL not found."])
+        }
+        
+        // Extract the path from the imageUrl
+        guard let storagePath = extractStoragePath(from: imageUrl) else {
+            throw NSError(domain: "DeletePostError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid image URL format."])
+        }
+        
+        // Delete the file from Firebase Storage
+        let storageRef = Storage.storage().reference(withPath: storagePath)
+        do {
+            try await storageRef.delete()
+            print("File deleted successfully from storage.")
+        } catch {
+            print("Failed to delete file from storage: \(error.localizedDescription)")
+        }
+        
+        // Delete the post document from Firestore
+        try await postRef.delete()
+        print("Post deleted successfully.")
+    }
+
+    // Helper function to extract the path from the imageUrl
+    private func extractStoragePath(from imageUrl: String) -> String? {
+        // Example URL: https://firebasestorage.googleapis.com:443/v0/b/<bucket>/o/images%2F<filename>?alt=media&token=<token>
+        guard let components = URLComponents(string: imageUrl),
+              let path = components.path.split(separator: "/").last else {
+            return nil
+        }
+        
+        // Reconstruct the storage path
+        return "images/\(path.removingPercentEncoding ?? String(path))"
+    }
+
 }

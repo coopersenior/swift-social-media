@@ -13,6 +13,7 @@ struct UploadPostView: View {
     @State private var imagePickerPresented = false
     @StateObject var viewModel = UploadPostViewModel()
     @Binding var tabIndex: Int
+    @State private var isButtonDisabled = false
     
     var body: some View {
         VStack {
@@ -32,6 +33,7 @@ struct UploadPostView: View {
                 Spacer()
                 
                 Button {
+                    isButtonDisabled = true
                     Task {
                         try await viewModel.uploadPost(caption: caption)
                         clearPostDataAndReturnToFeed()
@@ -39,7 +41,9 @@ struct UploadPostView: View {
                 } label: {
                     Text("Upload")
                         .fontWeight(.semibold)
+                        .opacity(isButtonDisabled ? 0.5 : 1.0)
                 }
+                .disabled(isButtonDisabled)
 
             }
             .padding(.horizontal)
@@ -62,6 +66,7 @@ struct UploadPostView: View {
         }
         .onAppear {
             imagePickerPresented.toggle()
+            isButtonDisabled = false
         }
         .photosPicker(isPresented: $imagePickerPresented, selection: $viewModel.selectedImage)
     }

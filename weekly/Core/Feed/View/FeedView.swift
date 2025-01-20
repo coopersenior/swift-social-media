@@ -25,12 +25,19 @@ struct FeedView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 32) {
-                    ForEach(viewModel.posts) { post in
-                        FeedCell(post: post)
+                if viewModel.posts.count > 0 {
+                    LazyVStack(spacing: 32) {
+                        ForEach(viewModel.posts) { post in
+                            FeedCell(post: post)
+                        }
                     }
+                    .padding(.top, 8)
+                } else {
+                    Text("No posts to view")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .padding()
                 }
-                .padding(.top, 8)
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)

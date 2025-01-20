@@ -12,6 +12,15 @@ import Kingfisher
 struct MessageVew: View {
     var message: Message
     let user: User
+    @State private var selectedMessageId: String? = nil
+    @State private var selectedReceiverId: String? = nil
+    @State private var showConfirmation = false
+    @StateObject var viewModel = MessagesViewModel()
+    
+    //@StateObject var messagesService: MessagesService
+    
+    let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+
     
 //    private var timeElapsed: String {
 //        let formatter = RelativeDateTimeFormatter()
@@ -21,39 +30,69 @@ struct MessageVew: View {
 //    }
     
     var body: some View {
-        if message.isFromCurrentUser() {
-            HStack {
+        HStack {
+            if message.isFromCurrentUser() {
                 HStack {
-                    Text(message.text)
-                        .padding()
-                        .background(Color(uiColor: .systemBlue))
-                        .cornerRadius(20)
-                        .font(.subheadline)
+                    HStack {
+                        Text(message.text)
+                            .padding()
+                            .background(Color(uiColor: .systemBlue))
+                            .cornerRadius(20)
+                            .font(.subheadline)
+                    }
+                    .frame(maxWidth: 260, alignment: .trailing)
                 }
-                .frame(maxWidth: 260, alignment: .trailing)
-            }
-            .frame(maxWidth: 360, alignment: .trailing)
-        } else {
-            HStack {
-                CircularProfileImageView(user: user, size: .xSmall)
+                .frame(maxWidth: 360, alignment: .trailing)
+                .gesture(
+                    LongPressGesture(minimumDuration: 0.5) // Adjust duration as needed
+                        .onEnded { _ in
+                            impactFeedbackGenerator.prepare()
+                            impactFeedbackGenerator.impactOccurred()
+                            selectedMessageId = message.id
+                            selectedReceiverId = message.receivingUserUid
+                            showConfirmation = true
+                        }
+                )
+            } else {
                 HStack {
-                    Text(message.text)
-                        .padding()
-                        .background(Color(uiColor: .systemGray5))
-                        .cornerRadius(20)
-                        .font(.subheadline)
+                    CircularProfileImageView(user: user, size: .xSmall)
+                    HStack {
+                        Text(message.text)
+                            .padding()
+                            .background(Color(uiColor: .systemGray5))
+                            .cornerRadius(20)
+                            .font(.subheadline)
+                    }
+                    .frame(maxWidth: 260, alignment: .leading)
                 }
-                .frame(maxWidth: 260, alignment: .leading)
+                .frame(maxWidth: 360, alignment: .leading)
             }
-            .frame(maxWidth: 360, alignment: .leading)
+            // adding timestamps in
+    //        Text(timeElapsed)
+    //            .font(.footnote)
+    //            .frame(maxWidth: .infinity, alignment: .leading)
+    //            .padding(.leading, 10)
+    //            .padding(.top, 0.5)
+    //            .foregroundStyle(.gray)
         }
-        // adding timestamps in 
-//        Text(timeElapsed)
-//            .font(.footnote)
-//            .frame(maxWidth: .infinity, alignment: .leading)
-//            .padding(.leading, 10)
-//            .padding(.top, 0.5)
-//            .foregroundStyle(.gray)
+        .alert("Are you sure?", isPresented: $showConfirmation, actions: {
+            Button("Delete Message", role: .destructive) {
+                if let messageId = selectedMessageId {
+                    if let receiverId = selectedReceiverId {
+                        Task {
+                            do {
+                                try await viewModel.deleteMessage(messageId: messageId, for: receiverId)
+                            } catch {
+                                print("Failed to delete post: \(error.localizedDescription)")
+                            }
+                        }
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }, message: {
+            Text("This action cannot be undone.")
+        })
     }
 }
 

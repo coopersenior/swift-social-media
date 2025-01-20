@@ -116,4 +116,47 @@ class MessagesViewModel: ObservableObject {
         messagesListener?.remove()
     }
     
+    func deleteMessage(messageId: String, for receiverUserId: String) async throws {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "DeleteMessageError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated."])
+        }
+
+        // Reference to the messages collection
+        let senderMessagesRef = Firestore.firestore()
+            .collection("users")
+            .document(uid)
+            .collection("messages")
+        
+        let receiverMessagesRef = Firestore.firestore()
+            .collection("users")
+            .document(receiverUserId)
+            .collection("messages")
+
+        // Query the message by its `id` field
+        let senderQuery = senderMessagesRef.whereField("id", isEqualTo: messageId)
+        let receiverQuery = receiverMessagesRef.whereField("id", isEqualTo: messageId)
+
+        do {
+            // Fetch and delete the sender's message
+            let senderSnapshot = try await senderQuery.getDocuments()
+            if let senderDocument = senderSnapshot.documents.first {
+                try await senderDocument.reference.delete()
+                print("Message with ID \(messageId) deleted from sender's collection.")
+            } else {
+                print("Message not found in sender's collection.")
+            }
+
+            // Fetch and delete the receiver's message
+            let receiverSnapshot = try await receiverQuery.getDocuments()
+            if let receiverDocument = receiverSnapshot.documents.first {
+                try await receiverDocument.reference.delete()
+                print("Message with ID \(messageId) deleted from receiver's collection.")
+            } else {
+                print("Message not found in receiver's collection.")
+            }
+        } catch {
+            throw NSError(domain: "DeleteMessageError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to delete the message. \(error.localizedDescription)"])
+        }
+    }
+    
 }

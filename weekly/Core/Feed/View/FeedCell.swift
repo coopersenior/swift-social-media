@@ -17,6 +17,9 @@ struct FeedCell: View {
     @State private var user: User?
     @State private var scale: CGFloat = 1.0
     
+    @State private var selectedPostId: String? = nil
+    @State private var showConfirmation = false
+    
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
     init(post: Post) {
@@ -45,6 +48,22 @@ struct FeedCell: View {
                                 .fontWeight(.semibold)
                             
                             Spacer()
+                            
+                            if user.isCurrentUser {
+                                Button {
+                                    impactFeedbackGenerator.prepare()
+                                    impactFeedbackGenerator.impactOccurred()
+                                    selectedPostId = post.id
+                                    showConfirmation = true
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20, height: 20)
+                                        .padding()
+                                }
+                            }
+                            
                         }
                         .padding(.leading, 8)
                     }
@@ -186,6 +205,23 @@ struct FeedCell: View {
                 }
             }
         }
+        .alert("Are you sure?", isPresented: $showConfirmation, actions: {
+            Button("Delete Post", role: .destructive) {
+                if let postId = selectedPostId {
+                    Task {
+                        do {
+                            try await viewModel.deletePost(postId: postId)
+                            print("Post deleted successfully.")
+                        } catch {
+                            print("Failed to delete post: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }, message: {
+            Text("This action cannot be undone.")
+        })
     }
 }
 

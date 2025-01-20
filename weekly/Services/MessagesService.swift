@@ -67,11 +67,12 @@ class MessagesService: ObservableObject {
     
     func sendMessage(text: String, receivingUserUid: String) {
         Task {
-            let fromMessage = Message(id: "\(UUID())", sendingUserUid: currentUserUid, receivingUserUid: receivingUserUid, text: text, timestamp: Timestamp(), isRead: true)
+            let msgId = UUID()
+            let fromMessage = Message(id: "\(msgId)", sendingUserUid: currentUserUid, receivingUserUid: receivingUserUid, text: text, timestamp: Timestamp(), isRead: true)
             
             try users.document(currentUserUid).collection("messages").document().setData(from: fromMessage)
             
-            let toMessage = Message(id: "\(UUID())", sendingUserUid: currentUserUid, receivingUserUid: receivingUserUid, text: text, timestamp: Timestamp(), isRead: false)
+            let toMessage = Message(id: "\(msgId)", sendingUserUid: currentUserUid, receivingUserUid: receivingUserUid, text: text, timestamp: Timestamp(), isRead: false)
             try users.document(receivingUserUid).collection("messages").document().setData(from: toMessage)
         }
     }
