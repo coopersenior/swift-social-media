@@ -61,7 +61,6 @@ struct LoginView: View {
                             // Attempt to sign in
                             try await viewModel.signIn()
                         } catch {
-                            print("catch")
                             incorrectLoginDetails = true
                         }
                     }
