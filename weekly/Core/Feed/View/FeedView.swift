@@ -19,20 +19,21 @@ struct FeedView: View {
     @StateObject var viewModel = FeedViewModel()
     @StateObject var friendRequestsViewModel = AddOrSearchViewModel()
     @StateObject var messagesViewModel = MessagesViewModel()
+    @State private var showNoPostsMessage = false
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                if viewModel.posts.count > 0 {
-                    LazyVStack(spacing: 32) {
-                        ForEach(viewModel.posts) { post in
-                            FeedCell(post: post)
-                        }
+                LazyVStack(spacing: 32) {
+                    ForEach(viewModel.posts) { post in
+                        FeedCell(post: post)
                     }
-                    .padding(.top, 8)
-                } else {
+                }
+                .padding(.top, 8)
+                
+                if showNoPostsMessage && viewModel.posts.isEmpty {
                     Text("No posts to view")
                         .font(.subheadline)
                         .fontWeight(.semibold)
@@ -91,6 +92,11 @@ struct FeedView: View {
             }
         }
         .onAppear {
+            if viewModel.posts.isEmpty {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    showNoPostsMessage = true
+                }
+            }
             viewModel.listenToPosts()
             friendRequestsViewModel.listenToFriendRequests()
             messagesViewModel.listenToMessages()
