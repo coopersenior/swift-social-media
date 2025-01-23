@@ -42,6 +42,7 @@ struct SingleChatView: View {
                 .padding(.horizontal)
             }
         }
+        .navigationTitle("")
         .toolbarRole(.editor)  // hides back bar title name
         .navigationBarBackButtonHidden(false)
         Divider()

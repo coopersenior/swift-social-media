@@ -51,49 +51,49 @@ struct MessagesView: View {
     }
     
     var body: some View {
-            ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(filteredUsers) { user in
-                        NavigationLink(destination: SingleChatView(user: user)) {
-                            HStack {
-                                CircularProfileImageView(user: user, size: .small)
-                                VStack(alignment: .leading) {
-                                    Text(user.username)
-                                        .fontWeight(.semibold)
-                                    if let fullname = user.fullname {
-                                        Text(fullname)
-                                    }
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                ForEach(filteredUsers) { user in
+                    NavigationLink(destination: SingleChatView(user: user)) {
+                        HStack {
+                            CircularProfileImageView(user: user, size: .small)
+                            VStack(alignment: .leading) {
+                                Text(user.username)
+                                    .fontWeight(.semibold)
+                                if let fullname = user.fullname {
+                                    Text(fullname)
                                 }
-                                .font(.footnote)
-                                Spacer()
-                                
-                                if viewModel.hasUnreadMessages(for: user.id) {
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 10, height: 10)
-                                }
-                                
                             }
-                            .foregroundStyle(.black)
-                            .padding(.horizontal)
+                            .font(.footnote)
+                            Spacer()
+                            
+                            if viewModel.hasUnreadMessages(for: user.id) {
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 10, height: 10)
+                            }
+                            
                         }
-                        .simultaneousGesture(TapGesture().onEnded {
-                            // Update the recent user cache
-                            viewModel.updateRecentUser(userId: user.id)
-                        })
+                        .foregroundStyle(.black)
+                        .padding(.horizontal)
                     }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        // Update the recent user cache
+                        viewModel.updateRecentUser(userId: user.id)
+                    })
                 }
-                .padding(.top, 8)
-                .searchable(text: $searchText, prompt: "Search...")
             }
-            .navigationTitle("Messages")
-            .navigationBarTitleDisplayMode(.inline)
-            .onAppear {
-                viewModel.listenToMessages()
-            }
-            .onDisappear {
-                viewModel.stopListening()
-            }
+            .padding(.top, 8)
+            .searchable(text: $searchText, prompt: "Search...")
+        }
+        .navigationTitle("Messages")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            viewModel.listenToMessages()
+        }
+        .onDisappear {
+            viewModel.stopListening()
+        }
     }
 }
 

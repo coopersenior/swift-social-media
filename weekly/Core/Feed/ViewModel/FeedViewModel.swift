@@ -151,5 +151,8 @@ class FeedViewModel: ObservableObject {
         // Reconstruct the storage path
         return "images/\(path.removingPercentEncoding ?? String(path))"
     }
-
+    
+    func fetchUser(withUid uid: String) async throws -> User {
+        return try await UserService.fetchUser(withUid: uid)
+    }
 }

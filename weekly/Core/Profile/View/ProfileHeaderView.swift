@@ -78,6 +78,9 @@ struct ProfileHeaderView: View {
             fetchPostCount()
             fetchFollowerCount()
         }
+        .navigationTitle("")
+        .toolbarRole(.editor)  // hides back bar title name
+        .navigationBarBackButtonHidden(false)
     }
     
     private func fetchPostCount() {
