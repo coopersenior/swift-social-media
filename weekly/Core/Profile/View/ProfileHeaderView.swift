@@ -12,6 +12,7 @@ struct ProfileHeaderView: View {
     @State private var showEditProfile = false
     @State private var postCount: Int = 0
     @State private var followerCount: Int = 0
+    @Environment(\.colorScheme) var colorScheme
     @StateObject var viewModel = AddOrSearchViewModel()
     
     var body: some View {
@@ -57,8 +58,11 @@ struct ProfileHeaderView: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .frame(width: 360, height: 32)
-                        .background(.white)
-                        .foregroundColor(.black)
+                        //.background(.white)
+                        //.foregroundColor(colorScheme == .dark ? .white : .black)
+                    
+                    
+                        //.foregroundColor(.black)
                         .cornerRadius(6)
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)

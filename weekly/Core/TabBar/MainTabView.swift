@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MainTabView: View {
     let user: User
+    @Environment(\.colorScheme) var colorScheme
     
     @State private var selectedIndex = 0
     
@@ -54,7 +55,7 @@ struct MainTabView: View {
                     Image(systemName: "person")
                 }.tag(4)
         }
-        .tint(.black)
+        .tint(colorScheme == .dark ? .white : .black)
     }
 }
 

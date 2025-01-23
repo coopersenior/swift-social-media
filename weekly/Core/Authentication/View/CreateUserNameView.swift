@@ -18,7 +18,7 @@ struct CreateUserNameView: View {
                 .fontWeight(.bold)
                 .padding(.top)
             
-            Text("Pick a username for your new account. You can always change it later.")
+            Text("Pick a username for your new account.")
                 .font(.footnote)
                 .foregroundStyle(.gray)
                 .multilineTextAlignment(.center)

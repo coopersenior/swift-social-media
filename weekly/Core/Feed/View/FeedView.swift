@@ -58,7 +58,6 @@ struct FeedView: View {
                                 }
                             }
                     }
-                    .foregroundStyle(.black)
                     .simultaneousGesture(
                         TapGesture().onEnded {
                             impactFeedbackGenerator.prepare()
@@ -81,7 +80,6 @@ struct FeedView: View {
                             }
                         }
                     }
-                    .foregroundStyle(.black)
                     .simultaneousGesture(
                         TapGesture().onEnded {
                             impactFeedbackGenerator.prepare()

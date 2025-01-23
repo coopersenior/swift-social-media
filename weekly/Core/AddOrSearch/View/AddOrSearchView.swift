@@ -81,7 +81,6 @@ struct AddOrSearchView: View {
                                             .padding()
                                     }
                                 }
-                                .foregroundStyle(.black)
                                 .padding(.horizontal)
                             }
                         }
@@ -123,7 +122,6 @@ struct AddOrSearchView: View {
                                             .padding()
                                     }
                                 }
-                                .foregroundStyle(.black)
                                 .padding(.horizontal)
                             }
                             
@@ -154,7 +152,6 @@ struct AddOrSearchView: View {
                                     
                                     Spacer()
                                 }
-                                .foregroundStyle(.black)
                                 .padding(.horizontal)
                             }
                             
@@ -189,7 +186,6 @@ struct AddOrSearchView: View {
                                     
                                     Spacer()
                                 }
-                                .foregroundStyle(.black)
                                 .padding(.horizontal)
                             }
                         }

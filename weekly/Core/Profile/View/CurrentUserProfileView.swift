@@ -29,7 +29,6 @@ struct CurrentUserProfileView: View {
                         AuthService.shared.signOut()
                     } label: {
                         Image(systemName: "line.3.horizontal")
-                            .foregroundStyle(.black)
                     }
 
                 }

@@ -15,6 +15,7 @@ struct CommentsView: View {
     @StateObject private var commentsService: CommentsService
     @State private var selectedCommentId: String? = nil
     @State private var showConfirmation = false
+    @Environment(\.colorScheme) var colorScheme
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     @State var text = ""
@@ -65,7 +66,6 @@ struct CommentsView: View {
                             Spacer()
                             
                         }
-                        .foregroundStyle(.black)
                         .padding(.horizontal)
                         .padding(.top, 5)
                         .gesture(
@@ -82,6 +82,8 @@ struct CommentsView: View {
                         .simultaneousGesture(TapGesture().onEnded {
                             Task {
                                 self.user = try await UserService.fetchUser(withUid: comment.commentUserId)
+                            }
+                            if UserService.isNotSelf(withUid: comment.commentUserId) {
                                 isShowingUserView = true // Trigger navigation after fetching the user
                             }
                         })
@@ -95,8 +97,6 @@ struct CommentsView: View {
                 }
                 .padding(.top, 8)
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
             .alert("Are you sure?", isPresented: $showConfirmation, actions: {
                 Button("Delete Comment", role: .destructive) {
                     if let commentId = selectedCommentId {
@@ -139,6 +139,8 @@ struct CommentsView: View {
             .background(Color(uiColor: .systemGray5))
             .cornerRadius(50)
             .padding()
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(isPresented: $isShowingUserView) {
                 if let user = user {
                     ProfileView(user: user)
@@ -152,8 +154,7 @@ struct CommentsView: View {
                                 }) {
                                     HStack {
                                         Image(systemName: "chevron.backward")
-                                            .foregroundColor(.black) // Black back arrow
-                                        Text("") // Optional back button title (empty for clean look)
+                                            .foregroundColor(colorScheme == .dark ? .white : .black)
                                     }
                                 }
                             }

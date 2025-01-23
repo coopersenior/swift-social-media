@@ -11,7 +11,7 @@ struct ProfileFriendButton: View {
     @StateObject var viewModel = AddOrSearchViewModel()
     let user: User
     @State private var isRequestSent: Bool = false
-    
+    @Environment(\.colorScheme) var colorScheme
     @State private var selectedUserId: String? = nil
     @State private var showConfirmation = false
     
@@ -46,8 +46,8 @@ struct ProfileFriendButton: View {
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .frame(width: 360, height: 32)
-                .background(viewModel.isFriend(userId: user.id) ? .white : isRequestSent ? .white : Color(.systemBlue))
-                .foregroundColor(viewModel.isFriend(userId: user.id) ? .black : isRequestSent ? .black : .white)
+                .background(viewModel.isFriend(userId: user.id) ? .clear : isRequestSent ? .clear : Color(.systemBlue))
+                .foregroundColor(viewModel.isFriend(userId: user.id) ? colorScheme == .dark ? .white : .black : isRequestSent ? colorScheme == .dark ? .white : .black : .white)
                 .cornerRadius(6)
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)

@@ -16,10 +16,12 @@ struct FeedCell: View {
     @State private var showHeart = false
     @State private var user: User?
     @State private var scale: CGFloat = 1.0
+    @Environment(\.colorScheme) var colorScheme
     
     @State private var selectedPostId: String? = nil
     @State private var showConfirmation = false
     @State private var showCommentsSheet = false
+    @Environment(\.presentationMode) var presentationMode
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
@@ -47,6 +49,7 @@ struct FeedCell: View {
                             Text(user.username)
                                 .font(.footnote)
                                 .fontWeight(.semibold)
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
                             
                             Spacer()
                             
@@ -62,19 +65,19 @@ struct FeedCell: View {
                                         .scaledToFit()
                                         .frame(width: 20, height: 20)
                                         .padding()
+                                        .foregroundColor(colorScheme == .dark ? .white : .black)
                                 }
                             }
                             
                         }
                         .padding(.leading, 8)
                     }
-                    .foregroundStyle(.black)
                 } else {
                     // Empty space with margin so view doesnt change after loading
                     HStack {
                         Spacer()
                     }
-                    .frame(height: 40)
+                    .frame(height: 45)
                     .padding(.leading, 8)
                 }
                 
@@ -138,7 +141,7 @@ struct FeedCell: View {
                     } label: {
                         Image(systemName: isLiked ? "heart.fill" : "heart")
                             .imageScale(.large)
-                            .foregroundColor(isLiked ? .red : .black)
+                            .foregroundColor(isLiked ? .red : (colorScheme == .dark ? .white : .black))
                     }
                     
                     Button {
@@ -148,6 +151,7 @@ struct FeedCell: View {
                     } label: {
                         Image(systemName: "bubble.right")
                             .imageScale(.large)
+                            .foregroundColor(colorScheme == .dark ? .white : .black)
                     }
                     
                     Button {
@@ -156,13 +160,13 @@ struct FeedCell: View {
                     } label: {
                         Image(systemName: "paperplane")
                             .imageScale(.large)
+                            .foregroundColor(colorScheme == .dark ? .white : .black)
                     }
                     
                     Spacer()
                 }
                 .padding(.leading, 8)
                 .padding(.top, 4)
-                .foregroundStyle(.black)
                 
                 // Likes label
                 Text(likes == 1 ? "\(likes) like" : "\(likes) likes")
@@ -203,6 +207,23 @@ struct FeedCell: View {
                     self.user = try await UserService.fetchUser(withUid: post.ownerUid)
                 } catch {
                     print("Failed to fetch user: \(error)")
+                }
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            if presentationMode.wrappedValue.isPresented {
+                // Only customize if the view is part of a navigation stack
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        HStack {
+                            Image(systemName: "chevron.backward")
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
+
+                        }
+                    }
                 }
             }
         }

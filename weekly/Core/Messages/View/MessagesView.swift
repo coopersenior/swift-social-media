@@ -74,7 +74,6 @@ struct MessagesView: View {
                             }
                             
                         }
-                        .foregroundStyle(.black)
                         .padding(.horizontal)
                     }
                     .simultaneousGesture(TapGesture().onEnded {

@@ -38,7 +38,6 @@ struct SingleChatView: View {
                     .font(.footnote)
                     Spacer()
                 }
-                .foregroundStyle(.black)
                 .padding(.horizontal)
             }
         }
