@@ -10,6 +10,7 @@ import Kingfisher
 
 struct FeedCell: View {
     let post: Post
+    @Environment(\.dismiss) var dismiss
     @StateObject var viewModel = FeedViewModel()
     @State private var isLiked = false
     @State private var likes: Int
@@ -21,11 +22,13 @@ struct FeedCell: View {
     @State private var selectedPostId: String? = nil
     @State private var showConfirmation = false
     @State private var showCommentsSheet = false
+    @State private var userProfileView = false
     @Environment(\.presentationMode) var presentationMode
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
-    init(post: Post) {
+    init(post: Post, userProfileView: Bool) {
+        self.userProfileView = userProfileView
         self.post = post
         _likes = State(initialValue: post.likes)
     }
@@ -53,7 +56,8 @@ struct FeedCell: View {
                             
                             Spacer()
                             
-                            if user.isCurrentUser {
+                            // hide if not in user Profile View
+                            if user.isCurrentUser && userProfileView {
                                 Button {
                                     impactFeedbackGenerator.prepare()
                                     impactFeedbackGenerator.impactOccurred()
@@ -233,6 +237,7 @@ struct FeedCell: View {
                     Task {
                         do {
                             try await viewModel.deletePost(postId: postId)
+                            dismiss()
                             print("Post deleted successfully.")
                         } catch {
                             print("Failed to delete post: \(error.localizedDescription)")
@@ -266,5 +271,5 @@ struct FeedCell: View {
 }
 
 #Preview {
-    FeedCell(post: Post.MOCK_POSTS[0])
+    FeedCell(post: Post.MOCK_POSTS[0], userProfileView: false)
 }

@@ -32,7 +32,7 @@ struct PostGridView: View {
         if (friendsViewModel.isFriend(userId: user.id)) {
             LazyVGrid(columns: gridItems, spacing: 1) {
                 ForEach(viewModel.posts) { post in
-                    NavigationLink(destination: FeedCell(post: post)) {
+                    NavigationLink(destination: FeedCell(post: post, userProfileView: true)) {
                         KFImage(URL(string: post.imageUrl))
                             .resizable()
                             .scaledToFill()
