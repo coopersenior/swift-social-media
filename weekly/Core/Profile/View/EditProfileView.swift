@@ -11,9 +11,11 @@ import PhotosUI
 struct EditProfileView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject var viewModel: EditProfileViewModel
+    @Binding var user: User
     
-    init(user: User) {
-        self._viewModel = StateObject(wrappedValue: EditProfileViewModel(user: user))
+    init(user: Binding<User>) {
+        self._viewModel = StateObject(wrappedValue: EditProfileViewModel(user: user.wrappedValue))
+        self._user = user // Initialize the Binding
     }
     
     var body: some View {
@@ -36,9 +38,14 @@ struct EditProfileView: View {
                     Button {
                         Task {
                             try await viewModel.updateUserData()
-                            // TODO: add loading icon 
+                            // TODO: add loading icon
+                            user.fullname = viewModel.fullname // Update fullname
+                            user.bio = viewModel.bio // Update bio
+                            if let url = viewModel.profileImageURl {
+                                user.profileImageUrl = url
+                                }
+                            }
                             dismiss()
-                        }
                     } label: {
                         Text("Done")
                             .font(.subheadline)
@@ -111,6 +118,6 @@ struct EditProfileRowView: View {
     }
 }
 
-#Preview {
-    EditProfileView(user: User.MOCK_USERS[0])
-}
+//#Preview {
+//    EditProfileView(user: User.MOCK_USERS[0])
+//}

@@ -9,13 +9,13 @@ import SwiftUI
 
 struct ProfileView: View {
     
-    let user: User
+    @State var user: User
   
     var body: some View {
         NavigationStack {
             ScrollView {
                 // header
-                ProfileHeaderView(user: user)
+                ProfileHeaderView(user: $user)
                 
                 // post grid view
                 PostGridView(user: user)

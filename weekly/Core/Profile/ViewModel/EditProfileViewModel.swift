@@ -17,6 +17,7 @@ class EditProfileViewModel: ObservableObject {
     }
     
     @Published var profileImage: Image?
+    @Published var profileImageURl: String?
     @Published var fullname = ""
     @Published var bio = ""
     
@@ -52,6 +53,7 @@ class EditProfileViewModel: ObservableObject {
         
         if let uiImage = uiImage {
             let imageUrl = try? await ImageUploader.uploadImage(image: uiImage)
+            profileImageURl = imageUrl
             data["profileImageUrl"] = imageUrl
         }
         
@@ -59,6 +61,7 @@ class EditProfileViewModel: ObservableObject {
         // update name if changed
         if !fullname.isEmpty && user.fullname != fullname {
             data["fullname"] = fullname
+            
         }
     
         // update bio if changed

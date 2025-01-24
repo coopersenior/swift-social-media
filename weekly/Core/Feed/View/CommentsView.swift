@@ -80,11 +80,12 @@ struct CommentsView: View {
                                 }
                         )
                         .simultaneousGesture(TapGesture().onEnded {
+                            // check if its not the comment author
                             Task {
-                                self.user = try await UserService.fetchUser(withUid: comment.commentUserId)
-                            }
-                            if UserService.isNotSelf(withUid: comment.commentUserId) {
-                                isShowingUserView = true // Trigger navigation after fetching the user
+                                if !commentsService.isCommentAuthor(withUid: comment.commentUserId) {
+                                    self.user = try await UserService.fetchUser(withUid: comment.commentUserId)
+                                    isShowingUserView = true
+                                }
                             }
                         })
                     }

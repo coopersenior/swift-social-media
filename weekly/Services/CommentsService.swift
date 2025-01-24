@@ -27,7 +27,7 @@ class CommentsService: ObservableObject {
             guard let uid = Auth.auth().currentUser?.uid else { return }
             let user = try await UserService.fetchUser(withUid: uid)
             
-            let comment = Comment(id: "\(UUID())", postId: post.id, commentUserId: uid, profileImageUrl: user.profileImageUrl, commentUsername: user.username, commentFullname: user.fullname, text: text, timestamp: Timestamp())
+            let comment = Comment(id: "\(UUID())", postId: post.id, commentUserId: uid, commentUsername: user.username, commentFullname: user.fullname, text: text, timestamp: Timestamp())
             
             try posts.document(post.id).collection("comments").document().setData(from: comment)
         }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProfileHeaderView: View {
-    let user: User
+    @Binding var user: User
     @State private var showEditProfile = false
     @State private var postCount: Int = 0
     @State private var followerCount: Int = 0
@@ -58,11 +58,6 @@ struct ProfileHeaderView: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .frame(width: 360, height: 32)
-                        //.background(.white)
-                        //.foregroundColor(colorScheme == .dark ? .white : .black)
-                    
-                    
-                        //.foregroundColor(.black)
                         .cornerRadius(6)
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
@@ -76,7 +71,7 @@ struct ProfileHeaderView: View {
             Divider() // TODO: remove this just have a break/space i dont like the line
         }
         .fullScreenCover(isPresented: $showEditProfile) {
-            EditProfileView(user: user)
+            EditProfileView(user: $user)
         }
         .onAppear {
             fetchPostCount()
@@ -109,6 +104,6 @@ struct ProfileHeaderView: View {
     
 }
 
-#Preview {
-    ProfileHeaderView(user: User.MOCK_USERS[0])
-}
+//#Preview {
+//    ProfileHeaderView(user: User.MOCK_USERS[0])
+//}
