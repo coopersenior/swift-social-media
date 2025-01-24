@@ -159,6 +159,7 @@ struct FeedCell: View {
                     }
                     
                     Button {
+                        presentSharePostView()
                         impactFeedbackGenerator.prepare()
                         impactFeedbackGenerator.impactOccurred()
                     } label: {
@@ -257,6 +258,24 @@ struct FeedCell: View {
            let rootVC = windowScene.windows.first?.rootViewController {
             // Create and present CommentsViewController
             let commentsViewController = CommentsViewModel(post: post)
+
+            // Configure sheet presentation
+            if let sheet = commentsViewController.presentationController as? UISheetPresentationController {
+                sheet.detents = [.medium(), .large()] // Set height to half-screen
+                sheet.prefersGrabberVisible = true // Show grabber for resizing
+            }
+
+            // Present the CommentsViewController
+            rootVC.present(commentsViewController, animated: true)
+        }
+    }
+    
+    func presentSharePostView() {
+        // Find the current top-most UIViewController
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            // Create and present CommentsViewController
+            let commentsViewController = ShareProfileViewModel(post: post)
 
             // Configure sheet presentation
             if let sheet = commentsViewController.presentationController as? UISheetPresentationController {

@@ -11,22 +11,54 @@ import FirebaseFirestore
 
 class AddOrSearchViewModel: ObservableObject {
     @Published var users = [User]()
+    @Published var suggestedUsers = [User]()
     @Published var friendRequests = [User]()
     @Published var friends = [User]()
     
     private var friendRequestsListener: ListenerRegistration?
     private var friendsListener: ListenerRegistration?
     private var usersListener: ListenerRegistration?
+    private var suggestUsersListener: ListenerRegistration?
     
     
     init() {
-        listenToSuggestedUsers()
-        listenToFriendRequests()
         listenToFriends()
+        listenToAllUsers()
+        listenToFriendRequests()
     }
     
     // Suggested Users Listener
     func listenToSuggestedUsers() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        
+        suggestUsersListener = Firestore.firestore()
+            .collection("users")
+            .addSnapshotListener { snapshot, error in
+                if let error = error {
+                    print("Error listening to suggested users: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else { return }
+                
+                Task {
+                    let fetchedUsers = documents.compactMap { document -> User? in
+                        try? document.data(as: User.self)
+                    }
+                    
+                    // Filter out the current user
+                    let filteredUsers = fetchedUsers.filter { user in
+                        user.id != uid && !self.friends.contains(where: { $0.id == user.id })
+                    }
+                    
+                    await MainActor.run {
+                        self.suggestedUsers = filteredUsers
+                    }
+                }
+            }
+    }
+    
+    func listenToAllUsers() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         
         usersListener = Firestore.firestore()
@@ -174,6 +206,7 @@ class AddOrSearchViewModel: ObservableObject {
                 
                 await MainActor.run {
                     self.friends = friends
+                    self.listenToSuggestedUsers()
                 }
             }
         }
@@ -183,6 +216,8 @@ class AddOrSearchViewModel: ObservableObject {
         friendRequestsListener?.remove()
         friendsListener?.remove()
         usersListener?.remove()
+        suggestUsersListener?.remove()
+        
     }
     
     func addFriend(friendUid: String) {

@@ -85,7 +85,7 @@ struct AddOrSearchView: View {
                             }
                         }
                     }
-    //         --------- My Requests -----------
+    //         --------- My Friends -----------
                     Text("My Friends")
                         .font(.footnote)
                         .fontWeight(.semibold)
@@ -135,7 +135,7 @@ struct AddOrSearchView: View {
                         .padding()
                     // TODO: find a way to suggest people they know
                     LazyVStack (spacing: 12){
-                        ForEach(viewModel.users) { user in  // change to the sorting by people they may know and remove current friends 
+                        ForEach(viewModel.suggestedUsers) { user in  // change to the sorting by people they may know and remove current friends 
                             NavigationLink(destination: ProfileView(user: user)) {
                                 HStack {
                                     CircularProfileImageView(user: user, size: .small)

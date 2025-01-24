@@ -16,6 +16,7 @@ struct Message: Decodable, Identifiable, Encodable {
     let text: String
     let timestamp: Timestamp
     var isRead: Bool = false
+    let profileId: String?
     
     func isFromCurrentUser() -> Bool {
         guard let currUser = Auth.auth().currentUser else {

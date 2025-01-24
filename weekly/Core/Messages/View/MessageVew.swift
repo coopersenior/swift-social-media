@@ -30,19 +30,31 @@ struct MessageVew: View {
     var body: some View {
         HStack {
             if message.isFromCurrentUser() {
+                // if message.postId != "" then render post preview
+                // check for custom message key
                 VStack {
-                    Text(message.text)
-                        .padding()
-                        .background(Color(uiColor: .systemBlue))
-                        .cornerRadius(20)
-                        .font(.subheadline)
-                        .frame(maxWidth: 260, alignment: .trailing)
-                    
+                    if message.text == "72deda80-3bfc-4496-8bc5-04e7c6d7c362" {
+                        if let msgId = message.profileId {
+                            ProfilePreviewView(profileId: msgId)
+                                .padding()
+                                .background(Color(uiColor: .systemBlue))
+                                .cornerRadius(20)
+                                .frame(maxWidth: 260, alignment: .trailing)
+                        }
+                    } else {
+                        Text(message.text)
+                            .padding()
+                            .background(Color(uiColor: .systemBlue))
+                            .cornerRadius(20)
+                            .font(.subheadline)
+                            .frame(maxWidth: 260, alignment: .trailing)
+                    }
                     Text(timeElapsed)
                         .font(.footnote)
                         .padding(.top, 0.5)
                         .foregroundStyle(.gray)
                         .frame(maxWidth: 260, alignment: .trailing)
+                    
                 }
                 .frame(maxWidth: 360, alignment: .trailing)
                 .gesture(
@@ -57,16 +69,29 @@ struct MessageVew: View {
                 )
             } else {
                 VStack {
-                    HStack {
-                        CircularProfileImageView(user: user, size: .xSmall)
-                        HStack {
-                            Text(message.text)
-                                .padding()
-                                .background(Color(uiColor: .systemGray5))
-                                .cornerRadius(20)
-                                .font(.subheadline)
+                    if message.text == "72deda80-3bfc-4496-8bc5-04e7c6d7c362" {
+                        if let msgId = message.profileId {
+                            HStack {
+                                CircularProfileImageView(user: user, size: .xSmall)
+                                ProfilePreviewView(profileId: msgId)
+                                    .padding()
+                                    .background(Color(uiColor: .systemGray5))
+                                    .cornerRadius(20)
+                                    .frame(maxWidth: 260, alignment: .leading)
+                            }
                         }
-                        .frame(maxWidth: 260, alignment: .leading)
+                    } else {
+                        HStack {
+                            CircularProfileImageView(user: user, size: .xSmall)
+                            HStack {
+                                Text(message.text)
+                                    .padding()
+                                    .background(Color(uiColor: .systemGray5))
+                                    .cornerRadius(20)
+                                    .font(.subheadline)
+                            }
+                            .frame(maxWidth: 260, alignment: .leading)
+                        }
                     }
                     Text(timeElapsed)
                         .font(.footnote)
@@ -100,5 +125,5 @@ struct MessageVew: View {
 }
 
 #Preview {
-    MessageVew(message: Message(id: "123", sendingUserUid: "12345", receivingUserUid: "12315", text: "The framing better be better on this nice chat being sent", timestamp: Timestamp()), user: User.MOCK_USERS[0])
+    MessageVew(message: Message(id: "123", sendingUserUid: "12345", receivingUserUid: "12315", text: "The framing better be better on this nice chat being sent", timestamp: Timestamp(), profileId: ""), user: User.MOCK_USERS[0])
 }
