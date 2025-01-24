@@ -23,37 +23,37 @@ struct MainTabView: View {
                     Image(systemName: "house")
                 }.tag(0)
             
-            SearchView()
+//            SearchView()
+//                .onAppear {
+//                    selectedIndex = 1
+//                }
+//                .tabItem {
+//                    Image(systemName: "magnifyingglass")
+//                }.tag(1)
+            
+            UploadPostView(tabIndex: $selectedIndex)
                 .onAppear {
                     selectedIndex = 1
                 }
                 .tabItem {
-                    Image(systemName: "magnifyingglass")
+                    Image(systemName: "plus.square")
                 }.tag(1)
             
-            UploadPostView(tabIndex: $selectedIndex)
+//            Text("Notifications")
+//                .onAppear {
+//                    selectedIndex = 3
+//                }
+//                .tabItem {
+//                    Image(systemName: "heart")
+//                }.tag(3)
+            
+            CurrentUserProfileView(user: user)
                 .onAppear {
                     selectedIndex = 2
                 }
                 .tabItem {
-                    Image(systemName: "plus.square")
-                }.tag(2)
-            
-            Text("Notifications")
-                .onAppear {
-                    selectedIndex = 3
-                }
-                .tabItem {
-                    Image(systemName: "heart")
-                }.tag(3)
-            
-            CurrentUserProfileView(user: user)
-                .onAppear {
-                    selectedIndex = 4
-                }
-                .tabItem {
                     Image(systemName: "person")
-                }.tag(4)
+                }.tag(2)
         }
         .tint(colorScheme == .dark ? .white : .black)
     }

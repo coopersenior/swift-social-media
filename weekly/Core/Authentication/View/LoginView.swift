@@ -12,6 +12,7 @@ struct LoginView: View {
     @State private var password = ""
     @StateObject var viewModel = LoginViewModel()
     @State private var incorrectLoginDetails = false
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         NavigationStack {
@@ -19,12 +20,12 @@ struct LoginView: View {
                 
                 Spacer()
                 
-                // logo image
-                Image("instagram")
+                
+                Image(colorScheme == .dark ? "weekly-light" : "weekly-dark")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 220, height: 100)
-                // text fields
+                    .frame(width: 300, height: 150)
+                
                 
                 VStack {
                     TextField("Enter your email", text: $viewModel.email)

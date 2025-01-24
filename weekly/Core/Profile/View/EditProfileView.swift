@@ -12,6 +12,7 @@ struct EditProfileView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject var viewModel: EditProfileViewModel
     @Binding var user: User
+    @State private var isLoading = false
     
     init(user: Binding<User>) {
         self._viewModel = StateObject(wrappedValue: EditProfileViewModel(user: user.wrappedValue))
@@ -36,20 +37,26 @@ struct EditProfileView: View {
                     Spacer()
                     
                     Button {
+                        isLoading = true
                         Task {
                             try await viewModel.updateUserData()
-                            // TODO: add loading icon
                             user.fullname = viewModel.fullname // Update fullname
                             user.bio = viewModel.bio // Update bio
                             if let url = viewModel.profileImageURl {
                                 user.profileImageUrl = url
                                 }
                             }
+                            isLoading = false
                             dismiss()
                     } label: {
-                        Text("Done")
-                            .font(.subheadline)
-                            .fontWeight(.bold)
+                        if isLoading {
+                            ProgressView() // Display spinner inside button
+                                .progressViewStyle(CircularProgressViewStyle())
+                        } else {
+                            Text("Done")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                        }
                     }
                 }
                 .padding(.horizontal)

@@ -12,6 +12,8 @@ struct ForgotPasswordView: View {
     @State private var email = ""
     @EnvironmentObject var viewModel: RegistrationViewModel
     @State private var isEmailSent = false
+    @State private var emailSending = false
+    @State private var sendFailed: String? = nil
     
     var body: some View {
         VStack(spacing: 12) {
@@ -46,17 +48,31 @@ struct ForgotPasswordView: View {
                 .disabled(isEmailSent)
                 .opacity(isEmailSent ? 0.5 : 1.0)
             
+            if let sendFailedMsg = sendFailed {
+                Text(sendFailedMsg)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            }
+            
             Button {
+                emailSending = true
+                sendFailed = nil
                 if isEmailSent {
                     print("return to sign in")
                     dismiss()
                 } else {
+                    
                     viewModel.sendPasswordResetEmail(to: email) { result in
                         switch result {
                             case .success(let message):
+                            emailSending = false
                             isEmailSent = true
                                 print(message)
                             case .failure(let error):
+                                emailSending = false
+                                sendFailed = "Error sending password reset email: \(error.localizedDescription)"
                                 print("Error sending password reset email: \(error.localizedDescription)")
                         }
                     }
@@ -81,6 +97,8 @@ struct ForgotPasswordView: View {
                 }
             }
             .padding(.vertical)
+            .disabled(emailSending)
+            .opacity(emailSending ? 0.5 : 1.0)
             
             Spacer()
         }

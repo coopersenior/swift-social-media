@@ -20,6 +20,7 @@ struct FeedView: View {
     @StateObject var friendRequestsViewModel = AddOrSearchViewModel()
     @StateObject var messagesViewModel = MessagesViewModel()
     @State private var showNoPostsMessage = false
+    @Environment(\.colorScheme) var colorScheme
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
@@ -64,6 +65,12 @@ struct FeedView: View {
                             impactFeedbackGenerator.impactOccurred()
                         }
                     )
+                }
+                ToolbarItem(placement: .principal) { // Center the image like a title
+                    Image(colorScheme == .dark ? "weekly-light" : "weekly-dark")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 35) // Adjust the size of the image
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink(destination: MessagesView().hideTabBar()) {

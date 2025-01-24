@@ -14,6 +14,7 @@ struct UploadPostView: View {
     @StateObject var viewModel = UploadPostViewModel()
     @Binding var tabIndex: Int
     @State private var isButtonDisabled = false
+    @State private var isLoading = false
     
     var body: some View {
         VStack {
@@ -34,14 +35,24 @@ struct UploadPostView: View {
                 
                 Button {
                     isButtonDisabled = true
+                    // start loading spinner
+                    isLoading = true
                     Task {
                         try await viewModel.uploadPost(caption: caption)
+                        // stop loading spinner
+                        isLoading = false
                         clearPostDataAndReturnToFeed()
                     }
                 } label: {
-                    Text("Upload")
-                        .fontWeight(.semibold)
-                        .opacity(isButtonDisabled ? 0.5 : 1.0)
+                    if isLoading {
+                        ProgressView() // Display spinner inside button
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .padding(.leading, 37)
+                    } else {
+                        Text("Upload")
+                            .fontWeight(.semibold)
+                            .opacity(isButtonDisabled ? 0.5 : 1.0)
+                    }
                 }
                 .disabled(isButtonDisabled)
 
