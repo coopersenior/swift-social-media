@@ -91,6 +91,7 @@ struct FeedCell: View {
                     .scaledToFit()
                     .clipShape(Rectangle())
                     .scaleEffect(scale)
+                    .cornerRadius(10)
                     .gesture(
                         MagnificationGesture()
                             .onChanged { value in

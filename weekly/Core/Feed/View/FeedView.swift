@@ -32,7 +32,7 @@ struct FeedView: View {
                         FeedCell(post: post, userProfileView: false)
                     }
                 }
-                .padding(.top, 8)
+                .padding(.top, 4)
                 
                 if showNoPostsMessage && viewModel.posts.isEmpty {
                     Text("No posts to view")

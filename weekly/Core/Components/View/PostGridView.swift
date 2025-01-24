@@ -38,6 +38,7 @@ struct PostGridView: View {
                             .scaledToFill()
                             .frame(width: imageDimension, height: imageDimension)
                             .clipped()
+                            .cornerRadius(10)
                     }
                 }
             }
