@@ -17,30 +17,32 @@ struct MessageVew: View {
     @State private var showConfirmation = false
     @StateObject var viewModel = MessagesViewModel()
     
-    //@StateObject var messagesService: MessagesService
-    
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
 
     
-//    private var timeElapsed: String {
-//        let formatter = RelativeDateTimeFormatter()
-//        formatter.unitsStyle = .short
-//        let date = message.timestamp.dateValue()
-//        return formatter.localizedString(for: date, relativeTo: Date())
-//    }
+    private var timeElapsed: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        let date = message.timestamp.dateValue()
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
     
     var body: some View {
         HStack {
             if message.isFromCurrentUser() {
-                HStack {
-                    HStack {
-                        Text(message.text)
-                            .padding()
-                            .background(Color(uiColor: .systemBlue))
-                            .cornerRadius(20)
-                            .font(.subheadline)
-                    }
-                    .frame(maxWidth: 260, alignment: .trailing)
+                VStack {
+                    Text(message.text)
+                        .padding()
+                        .background(Color(uiColor: .systemBlue))
+                        .cornerRadius(20)
+                        .font(.subheadline)
+                        .frame(maxWidth: 260, alignment: .trailing)
+                    
+                    Text(timeElapsed)
+                        .font(.footnote)
+                        .padding(.top, 0.5)
+                        .foregroundStyle(.gray)
+                        .frame(maxWidth: 260, alignment: .trailing)
                 }
                 .frame(maxWidth: 360, alignment: .trailing)
                 .gesture(
@@ -54,26 +56,27 @@ struct MessageVew: View {
                         }
                 )
             } else {
-                HStack {
-                    CircularProfileImageView(user: user, size: .xSmall)
+                VStack {
                     HStack {
-                        Text(message.text)
-                            .padding()
-                            .background(Color(uiColor: .systemGray5))
-                            .cornerRadius(20)
-                            .font(.subheadline)
+                        CircularProfileImageView(user: user, size: .xSmall)
+                        HStack {
+                            Text(message.text)
+                                .padding()
+                                .background(Color(uiColor: .systemGray5))
+                                .cornerRadius(20)
+                                .font(.subheadline)
+                        }
+                        .frame(maxWidth: 260, alignment: .leading)
                     }
-                    .frame(maxWidth: 260, alignment: .leading)
+                    Text(timeElapsed)
+                        .font(.footnote)
+                        .padding(.top, 0.5)
+                        .padding(.leading, 30)
+                        .foregroundStyle(.gray)
+                        .frame(maxWidth: 260, alignment: .leading)
                 }
                 .frame(maxWidth: 360, alignment: .leading)
             }
-            // adding timestamps in
-    //        Text(timeElapsed)
-    //            .font(.footnote)
-    //            .frame(maxWidth: .infinity, alignment: .leading)
-    //            .padding(.leading, 10)
-    //            .padding(.top, 0.5)
-    //            .foregroundStyle(.gray)
         }
         .alert("Are you sure?", isPresented: $showConfirmation, actions: {
             Button("Delete Message", role: .destructive) {
