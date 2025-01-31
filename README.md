@@ -1,5 +1,5 @@
 ## App Preview
-#### Signup Pages
+#### Login page, reset password page, add email and username signup flow
 ![Image](https://github.com/user-attachments/assets/143b6f91-2add-41c9-8ecc-d8c8600d5532)
 #### There is built in support for light and dark modes based off the devices system settings
 ![Image](https://github.com/user-attachments/assets/b83967c9-16bc-4842-b7b8-77fa7162d90b)
