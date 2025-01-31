@@ -16,13 +16,13 @@ struct CompleteSignUpView: View {
             
             Spacer()
             
-            Text("Welcome to Instagram, \(viewModel.username)")
+            Text("Welcome to Weekly, \(viewModel.username)")
                 .font(.title2)
                 .fontWeight(.bold)
                 .padding(.top)
                 .multilineTextAlignment(.center)
             
-            Text("Click below to complete registration and start using Instagram. ")
+            Text("Click below to complete registration and start using Weekly. ")
                 .font(.footnote)
                 .foregroundStyle(.gray)
                 .multilineTextAlignment(.center)
