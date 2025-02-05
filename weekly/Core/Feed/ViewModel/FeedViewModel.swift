@@ -15,8 +15,10 @@ class FeedViewModel: ObservableObject {
     private var postsListener: ListenerRegistration?
     
     init() {
-        Task { try await fetchPosts() }
-        listenToPosts()
+        Task {
+            try await fetchPosts()
+            listenToPosts()
+        }
     }
     
     @MainActor

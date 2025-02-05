@@ -20,6 +20,7 @@ struct FeedView: View {
     @StateObject var friendRequestsViewModel = AddOrSearchViewModel()
     @StateObject var messagesViewModel = MessagesViewModel()
     @State private var showNoPostsMessage = false
+    @State private var isLoading = true
     @Environment(\.colorScheme) var colorScheme
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
@@ -27,18 +28,24 @@ struct FeedView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 32) {
-                    ForEach(viewModel.posts) { post in
-                        FeedCell(post: post, userProfileView: false)
-                    }
-                }
-                .padding(.top, 4)
-                
-                if showNoPostsMessage && viewModel.posts.isEmpty {
-                    Text("No posts to view")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
+                if isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
                         .padding()
+                } else {
+                    LazyVStack(spacing: 32) {
+                        ForEach(viewModel.posts) { post in
+                            FeedCell(post: post, userProfileView: false)
+                        }
+                    }
+                    .padding(.top, 4)
+
+                    if showNoPostsMessage {
+                        Text("No posts to view")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .padding()
+                    }
                 }
             }
             .navigationTitle("")
@@ -97,10 +104,10 @@ struct FeedView: View {
             }
         }
         .onAppear {
-            if viewModel.posts.isEmpty {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    showNoPostsMessage = true
-                }
+            Task {
+                try await viewModel.fetchPosts()
+                isLoading = false
+                showNoPostsMessage = viewModel.posts.isEmpty
             }
             viewModel.listenToPosts()
             friendRequestsViewModel.listenToFriendRequests()

@@ -77,11 +77,26 @@ struct FeedCell: View {
                         .padding(.leading, 8)
                     }
                 } else {
-                    // Empty space with margin so view doesnt change after loading
+                    // trying to add space view dosnt change after loading
                     HStack {
+                        Image(systemName: "trash")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                            .padding()
+                            .opacity(0)
+                        Text("")
+                            .font(.footnote)
+                            .fontWeight(.semibold)
                         Spacer()
+                        
+                        Image(systemName: "trash")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .padding()
+                            .opacity(0)
                     }
-                    .frame(height: 45)
                     .padding(.leading, 8)
                 }
                 
@@ -206,30 +221,13 @@ struct FeedCell: View {
         .onAppear {
             // Fetch like status on load
             Task {
-                if try await viewModel.fetchLikeStatus(postId: post.id) {
-                    isLiked = true
-                }
                 do {
                     self.user = try await UserService.fetchUser(withUid: post.ownerUid)
                 } catch {
                     print("Failed to fetch user: \(error)")
                 }
-            }
-        }
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            if presentationMode.wrappedValue.isPresented {
-                // Only customize if the view is part of a navigation stack
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        HStack {
-                            Image(systemName: "chevron.backward")
-                                .foregroundColor(colorScheme == .dark ? .white : .black)
-
-                        }
-                    }
+                if try await viewModel.fetchLikeStatus(postId: post.id) {
+                    isLiked = true
                 }
             }
         }

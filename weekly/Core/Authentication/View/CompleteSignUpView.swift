@@ -22,7 +22,7 @@ struct CompleteSignUpView: View {
                 .padding(.top)
                 .multilineTextAlignment(.center)
             
-            Text("Click below to complete registration and start using Weekly. ")
+            Text("Click below to complete registration and start using Weekly.")
                 .font(.footnote)
                 .foregroundStyle(.gray)
                 .multilineTextAlignment(.center)

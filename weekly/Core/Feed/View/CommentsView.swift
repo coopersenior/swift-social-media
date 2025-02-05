@@ -145,21 +145,6 @@ struct CommentsView: View {
             .navigationDestination(isPresented: $isShowingUserView) {
                 if let user = user {
                     ProfileView(user: user)
-                        .navigationBarBackButtonHidden(true)
-                        .navigationTitle("")
-                        .toolbarRole(.editor) // Removes the title in the back button
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarLeading) {
-                                Button(action: {
-                                    isShowingUserView = false // Handle custom back navigation
-                                }) {
-                                    HStack {
-                                        Image(systemName: "chevron.backward")
-                                            .foregroundColor(colorScheme == .dark ? .white : .black)
-                                    }
-                                }
-                            }
-                        }
                 }
             }
         }
