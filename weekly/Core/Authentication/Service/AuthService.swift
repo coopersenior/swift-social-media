@@ -48,6 +48,24 @@ class AuthService {
         self.userSession = Auth.auth().currentUser
         guard let currentUid = userSession?.uid else { return }
         self.currentUser = try await UserService.fetchUser(withUid: currentUid)
+        // find users most recent post
+        try await checkHasPosted()
+        
+    }
+    
+    @MainActor
+    func checkHasPosted() async throws {
+        self.userSession = Auth.auth().currentUser
+        guard let currentUid = userSession?.uid else { return }
+        
+        let hasPostedValue = try await PostService.isLastPostRecentAndAfterResetDate(uid: currentUid)
+        
+        if var user = self.currentUser {
+            user.hasPosted = hasPostedValue
+            self.currentUser = user 
+        } else {
+            print("Error: currentUser is nil")
+        }
     }
     
     func signOut() {

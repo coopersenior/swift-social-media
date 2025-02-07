@@ -26,7 +26,7 @@ class FeedViewModel: ObservableObject {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let friends = try await UserService.fetchAllFriends(withUid: uid)
             
-        let allPosts = try await PostService.fetchFeedPosts()
+        let allPosts = try await PostService.fetchFeedPosts(uid: uid)
         
         self.posts = allPosts.filter { post in
             // Include posts from friends or the current user
@@ -48,6 +48,25 @@ class FeedViewModel: ObservableObject {
         try await postRef.updateData([
             "likes": FieldValue.increment(Int64(1)) // Increment by 1
         ])
+        
+    }
+    
+    func listenToLikes(for postId: String, updateLikes: @escaping (Int) -> Void) {
+        let postRef = Firestore.firestore().collection("posts").document(postId)
+        
+        postRef.addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("Error listening to likes: \(error.localizedDescription)")
+                return
+            }
+            
+            // If there's new data for the post, update the likes count
+            if let data = snapshot?.data(), let likes = data["likes"] as? Int {
+                DispatchQueue.main.async {
+                    updateLikes(likes) // Update the likes count
+                }
+            }
+        }
     }
     
     func unlikePost(postId: String) async throws {
@@ -113,21 +132,21 @@ class FeedViewModel: ObservableObject {
     }
     
     func deletePost(postId: String) async throws {
-        // Reference to the specific post document
-        let postRef = Firestore.firestore().collection("posts").document(postId)
-        
+        let db = Firestore.firestore()
+        let postRef = db.collection("posts").document(postId)
+
         // Fetch the post document to get the imageUrl
         let snapshot = try await postRef.getDocument()
         guard let postData = snapshot.data(),
               let imageUrl = postData["imageUrl"] as? String else {
             throw NSError(domain: "DeletePostError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Post or image URL not found."])
         }
-        
-        // Extract the path from the imageUrl
+
+        // Extract the storage path from the imageUrl
         guard let storagePath = extractStoragePath(from: imageUrl) else {
             throw NSError(domain: "DeletePostError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid image URL format."])
         }
-        
+
         // Delete the file from Firebase Storage
         let storageRef = Storage.storage().reference(withPath: storagePath)
         do {
@@ -136,10 +155,23 @@ class FeedViewModel: ObservableObject {
         } catch {
             print("Failed to delete file from storage: \(error.localizedDescription)")
         }
-        
-        // Delete the post document from Firestore
+
+        // delete all subcollections
+        let subcollections = ["comments", "likes"] // Add more if needed
+        for subcollection in subcollections {
+            let subcollectionRef = postRef.collection(subcollection)
+            let subcollectionDocs = try await subcollectionRef.getDocuments()
+
+            for document in subcollectionDocs.documents {
+                try await document.reference.delete()
+            }
+        }
+
+        // delete the post document
         try await postRef.delete()
         print("Post deleted successfully.")
+
+        try await AuthService().checkHasPosted()
     }
 
     // Helper function to extract the path from the imageUrl

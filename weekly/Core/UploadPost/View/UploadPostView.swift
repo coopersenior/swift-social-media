@@ -15,6 +15,7 @@ struct UploadPostView: View {
     @Binding var tabIndex: Int
     @State private var isButtonDisabled = false
     @State private var isLoading = false
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         VStack {
@@ -67,6 +68,7 @@ struct UploadPostView: View {
                         .scaledToFill()
                         .frame(width: 100, height: 100)
                         .clipped()
+                        .cornerRadius(7)
                 }
                     
                 TextField("Enter your caption...", text: $caption, axis: .vertical)
@@ -87,6 +89,7 @@ struct UploadPostView: View {
         viewModel.selectedImage = nil
         viewModel.postImage = nil
         tabIndex = 0
+        dismiss()
     }
 }
 

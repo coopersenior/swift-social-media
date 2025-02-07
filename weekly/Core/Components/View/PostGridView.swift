@@ -11,6 +11,7 @@ import Kingfisher
 struct PostGridView: View {
     @ObservedObject var viewModel: PostGridViewModel
     @StateObject var friendsViewModel = AddOrSearchViewModel()
+    @State private var showMessage = false
     
     let user: User
     
@@ -37,6 +38,7 @@ struct PostGridView: View {
                             .resizable()
                             .scaledToFill()
                             .frame(width: imageDimension, height: imageDimension)
+                            .blur(radius: (post.blurred ?? false) ? 15 : 0)
                             .clipped()
                             .cornerRadius(10)
                     }
@@ -50,10 +52,19 @@ struct PostGridView: View {
                 viewModel.listenToUserPosts()
             }
         } else {
-            Text("Must be friends to view posts")
-                .fontWeight(.semibold)
-                .font(.footnote)
-                .padding()
+            VStack {
+                if showMessage {
+                    Text("Must be friends to view posts")
+                        .fontWeight(.semibold)
+                        .font(.footnote)
+                        .padding()
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    showMessage = true
+                }
+            }
         }
     }
 }

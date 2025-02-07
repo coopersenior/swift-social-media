@@ -50,8 +50,16 @@ class PostGridViewModel: ObservableObject {
                 // Update the posts array with the fetched posts
                 DispatchQueue.main.async {
                     self?.posts = fetchedPosts
+                    self?.triggerReRender()
                 }
             }
+    }
+    
+    func triggerReRender() {
+        Task { try await fetchUserPosts() }
+        // This function doesn't need to do anything with the posts.
+        // Its purpose is to trigger a re-render of the View.
+        objectWillChange.send()
     }
     
     func stopListening() {
