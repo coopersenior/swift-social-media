@@ -40,6 +40,7 @@ class AuthService {
             await uploadUserData(uid: result.user.uid, username: username, email: email)
         } catch {
             print("DEBUG: Failed to register user with error \(error.localizedDescription)")
+            throw error
         }
     }
     

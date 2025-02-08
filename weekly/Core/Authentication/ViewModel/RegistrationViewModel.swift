@@ -15,11 +15,14 @@ class RegistrationViewModel: ObservableObject {
     
     @MainActor
     func createUser() async throws {
-        try await AuthService.shared.createUser(email: email, password: password, username: username)
-        
-        username = ""
-        email = ""
-        password = ""
+        do {
+            try await AuthService.shared.createUser(email: email, password: password, username: username)
+            username = ""
+            email = ""
+            password = ""
+        }  catch {
+            throw error
+        }
     }
     
     func sendPasswordResetEmail(to email: String, completion: @escaping (Result<String, Error>) -> Void) {

@@ -11,6 +11,14 @@ struct AddEmailView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: RegistrationViewModel
     
+    @State private var showError: Bool = false
+
+    var isEmailValid: Bool {
+        let emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        let predicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        return predicate.evaluate(with: viewModel.email)
+    }
+    
     var body: some View {
         VStack(spacing: 12) {
             Text("Add your email")
@@ -29,9 +37,18 @@ struct AddEmailView: View {
                 .modifier(TextFieldModifier())
                 .padding(.top)
             
+            if !isEmailValid && !viewModel.email.isEmpty {
+                Text("Please enter a valid email address")
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .transition(.opacity)
+            }
+            
             NavigationLink {
-                CreateUserNameView()
-                    .navigationBarBackButtonHidden()
+                if isEmailValid {
+                    CreateUserNameView()
+                        .navigationBarBackButtonHidden()
+                }
             } label: {
                 Text("Next")
                     .font(.subheadline)
@@ -42,6 +59,7 @@ struct AddEmailView: View {
                     .cornerRadius(8)
             }
             .padding(.vertical)
+            .disabled(!isEmailValid)
             
             Spacer()
         }

@@ -42,6 +42,8 @@ struct CreateUserNameView: View {
                     .cornerRadius(8)
             }
             .padding(.vertical)
+            .disabled(viewModel.username.isEmpty)
+
             
             Spacer()
         }

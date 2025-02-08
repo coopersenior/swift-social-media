@@ -11,6 +11,9 @@ struct CompleteSignUpView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: RegistrationViewModel
     
+    @State private var showError: Bool = false
+    @State private var errorMessage: String = ""
+    
     var body: some View {
         VStack(spacing: 12) {
             
@@ -28,8 +31,37 @@ struct CompleteSignUpView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
             
+            // Show error if registration fails
+            if showError {
+                VStack {
+                    Text("Failed to create account!")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                        .multilineTextAlignment(.center)
+                        .transition(.opacity)
+                    
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                        .multilineTextAlignment(.center)
+                        .transition(.opacity)
+                }
+            }
+            
             Button {
-                Task { try await viewModel.createUser() }
+                Task {
+                    do {
+                        try await viewModel.createUser()
+                    } catch {
+                        DispatchQueue.main.async {
+                            errorMessage = error.localizedDescription
+                            showError = true
+                        }
+                    }
+                }
             } label: {
                 Text("Complete Sign Up")
                     .font(.subheadline)
@@ -40,6 +72,8 @@ struct CompleteSignUpView: View {
                     .cornerRadius(8)
             }
             .padding(.vertical)
+            .disabled(showError)
+            .opacity(showError ? 0.5 : 1)
             
             Spacer()
         }

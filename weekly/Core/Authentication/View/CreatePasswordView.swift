@@ -11,6 +11,10 @@ struct CreatePasswordView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: RegistrationViewModel
     
+    var isPasswordValid: Bool {
+        return viewModel.password.count >= 6
+    }
+    
     var body: some View {
         VStack(spacing: 12) {
             Text("Create password")
@@ -29,9 +33,18 @@ struct CreatePasswordView: View {
                 .modifier(TextFieldModifier())
                 .padding(.top)
             
+            if !isPasswordValid && !viewModel.password.isEmpty {
+                Text("Password must be at least 6 characters long.")
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .transition(.opacity)
+            }
+            
             NavigationLink {
-                CompleteSignUpView()
-                    .navigationBarBackButtonHidden()
+                if isPasswordValid {
+                    CompleteSignUpView()
+                        .navigationBarBackButtonHidden()
+                }
             } label: {
                 Text("Next")
                     .font(.subheadline)
@@ -42,6 +55,7 @@ struct CreatePasswordView: View {
                     .cornerRadius(8)
             }
             .padding(.vertical)
+            .disabled(!isPasswordValid)
             
             Spacer()
         }
