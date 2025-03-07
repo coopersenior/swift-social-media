@@ -12,7 +12,14 @@ struct ProfileSettingsView: View {
     
     var body: some View {
         NavigationStack {
-            
+            HStack {
+                
+                Text("New posting week starts each \(PostService.getPostResetDateAsDay())")
+                    .font(.footnote)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color(.systemBlue))
+            }
+           
             Spacer()
             
             Button {

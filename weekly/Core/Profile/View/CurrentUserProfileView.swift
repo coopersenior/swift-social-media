@@ -26,7 +26,7 @@ struct CurrentUserProfileView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(destination: ProfileSettingsView().hideTabBar()) {
-                        Image(systemName: "line.3.horizontal")
+                        Image(systemName: "gear")
                     }
                 }
             }

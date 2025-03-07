@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-struct ShareProfileView: View {
+struct SharePostView: View {
     let post : Post
     @State private var searchText = ""
     @StateObject var viewModel = AddOrSearchViewModel()
-    @StateObject var messageViewModel = ShareProfileAsMessageViewModel()
+    @StateObject var messageViewModel = SharePostAsMessageViewModel()
     @Environment(\.colorScheme) var colorScheme
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
 
@@ -30,7 +30,7 @@ struct ShareProfileView: View {
     }
     
     var body: some View {
-        Text("Share user profile")
+        Text("Share post")
             .font(.subheadline)
             .fontWeight(.semibold)
             .padding(.top)
@@ -87,7 +87,7 @@ struct ShareProfileView: View {
                             Button {
                                 impactFeedbackGenerator.prepare()
                                 impactFeedbackGenerator.impactOccurred()
-                                messageViewModel.sendMessage(profileId: post.ownerUid, receivingUserUid: user.id)
+                                messageViewModel.sendMessage(postId: post.id, receivingUserUid: user.id)
                             } label : {
                                 Image(systemName: "paperplane.fill")
                                     .foregroundStyle(Color(.white))
@@ -118,7 +118,7 @@ struct ShareProfileView: View {
                             Button {
                                 impactFeedbackGenerator.prepare()
                                 impactFeedbackGenerator.impactOccurred()
-                                messageViewModel.sendMessage(profileId: post.ownerUid, receivingUserUid: user.id)
+                                messageViewModel.sendMessage(postId: post.id, receivingUserUid: user.id)
                             } label : {
                                 Image(systemName: "paperplane.fill")
                                     .foregroundStyle(Color(.white))
@@ -155,7 +155,7 @@ struct ShareProfileView: View {
                             Button {
                                 impactFeedbackGenerator.prepare()
                                 impactFeedbackGenerator.impactOccurred()
-                                messageViewModel.sendMessage(profileId: post.ownerUid, receivingUserUid: user.id)
+                                messageViewModel.sendMessage(postId: post.id, receivingUserUid: user.id)
                             } label : {
                                 Image(systemName: "paperplane.fill")
                                     .foregroundStyle(Color(.white))

@@ -8,25 +8,58 @@
 import Foundation
 import PhotosUI
 import SwiftUI
+import UIKit
 import FirebaseAuth
 import Firebase
+
+enum ImageError: Error, LocalizedError {
+    case aspectRatioTooTall
+
+    var errorDescription: String? {
+        switch self {
+        case .aspectRatioTooTall:
+            return "The selected image is too tall. Please choose an image with a 16:9 aspect ratio or wider."
+        }
+    }
+}
 
 @MainActor
 class UploadPostViewModel: ObservableObject {
     
     @Published var selectedImage: PhotosPickerItem? {
-        didSet { Task { await loadImage(fromItem: selectedImage) } }
-    }
+            didSet {
+                Task {
+                    do {
+                        try await loadImage(fromItem: selectedImage)
+                    } catch {
+                        DispatchQueue.main.async {
+                            self.imageError = error // Capture the error
+                        }
+                    }
+                }
+            }
+        }
     
     @Published var postImage: Image?
-    private var uiImage: UIImage?
-    
-    func loadImage(fromItem item: PhotosPickerItem?) async {
+    @Published var uiImage: UIImage?
+    @Published var imageError: Error?
+
+    func loadImage(fromItem item: PhotosPickerItem?) async throws {
         guard let item = item else { return }
         
         guard let data = try? await item.loadTransferable(type: Data.self) else { return }
         
         guard let uiImage = UIImage(data: data) else { return }
+        
+        let imageWidth = uiImage.size.width
+        let imageHeight = uiImage.size.height
+        let aspectRatio = imageHeight / imageWidth
+        
+        // Check if the image is taller than a 16:9 ratio (9/16 = 0.5625)
+        if aspectRatio > (16.0 / 9.0) {
+            throw ImageError.aspectRatioTooTall
+        }
+
         self.uiImage = uiImage
         self.postImage = Image(uiImage: uiImage)
     }
@@ -44,3 +77,4 @@ class UploadPostViewModel: ObservableObject {
         try await AuthService().checkHasPosted()
     }
 }
+

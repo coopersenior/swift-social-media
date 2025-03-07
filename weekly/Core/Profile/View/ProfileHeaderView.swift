@@ -26,7 +26,9 @@ struct ProfileHeaderView: View {
                 HStack(spacing: 8) {
                     UserStatView(value: postCount, title: postCount == 1 ? "Post" : "Posts")
                     
-                    UserStatView(value: followerCount, title: followerCount == 1 ? "Friend" : "Friends")
+                    NavigationLink(destination: FriendsListView(user: user).hideTabBar()) {
+                        UserStatView(value: followerCount, title: followerCount == 1 ? "Friend" : "Friends")
+                    }
                 }
                 Spacer()
             }

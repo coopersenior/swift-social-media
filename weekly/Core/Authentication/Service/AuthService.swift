@@ -59,7 +59,7 @@ class AuthService {
         self.userSession = Auth.auth().currentUser
         guard let currentUid = userSession?.uid else { return }
         
-        let hasPostedValue = try await PostService.isLastPostRecentAndAfterResetDate(uid: currentUid)
+        let hasPostedValue = try await PostService.checkHasPosted(uid: currentUid)
         
         if var user = self.currentUser {
             user.hasPosted = hasPostedValue

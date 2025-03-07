@@ -64,9 +64,8 @@ struct AddOrSearchView: View {
                                         impactFeedbackGenerator.impactOccurred()
                                         viewModel.acceptFriendRequest(friendUid: user.id)
                                     } label: {
-                                        Image(systemName: "checkmark")
+                                        Image(systemName: "person.fill.checkmark")
                                             .imageScale(.large)
-                                            .foregroundColor(.green)
                                             .padding()
                                     }
                                     
@@ -75,9 +74,8 @@ struct AddOrSearchView: View {
                                         impactFeedbackGenerator.impactOccurred()
                                         viewModel.denyFriendRequest(friendUid: user.id)
                                     } label: {
-                                        Image(systemName: "xmark")
-                                            .imageScale(.large)
-                                            .foregroundColor(.red)
+                                        Image(systemName: "person.fill.xmark")
+                                            .imageScale(.medium)
                                             .padding()
                                     }
                                 }
@@ -116,9 +114,8 @@ struct AddOrSearchView: View {
                                         selectedUserId = user.id
                                         showConfirmation = true
                                     } label: {
-                                        Image(systemName: "xmark")
-                                            .imageScale(.large)
-                                            .foregroundColor(.red)
+                                        Image(systemName: "person.fill.xmark")
+                                            .imageScale(.medium)
                                             .padding()
                                     }
                                 }
@@ -194,7 +191,7 @@ struct AddOrSearchView: View {
                 .padding(.top, 8)
                 .searchable(text: $searchText, prompt: "Add or search friends")
             }
-            .navigationTitle("")
+            .navigationTitle("Manage Friends")
             .navigationBarTitleDisplayMode(.inline)
         }
         .onAppear {

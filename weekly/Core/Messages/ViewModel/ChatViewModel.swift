@@ -14,11 +14,6 @@ class ChatViewModel: ObservableObject {
     @Published var messages = [Message]()
     
     @Published var mockData = [
-        Message(id: "123", sendingUserUid: "12345", receivingUserUid: "134", text: "Hello this is a message from me", timestamp: Timestamp(), profileId: ""),
-        Message(id: "123", sendingUserUid: "12345", receivingUserUid: "134", text: "Hello this is a message from me", timestamp: Timestamp(), profileId: ""),
-        Message(id: "123", sendingUserUid: "12345", receivingUserUid: "134", text: "Hello this is a message from me", timestamp: Timestamp(), profileId: ""),
-        Message(id: "123", sendingUserUid: "12345", receivingUserUid: "134", text: "Hello this is a message from me", timestamp: Timestamp(), profileId: ""),
-        Message(id: "123", sendingUserUid: "12345", receivingUserUid: "134", text: "Hello this is a message from me", timestamp: Timestamp(), profileId: ""),
-        Message(id: "123", sendingUserUid: "12345", receivingUserUid: "134", text: "Hello this is a message from me", timestamp: Timestamp(), profileId: ""),
+        Message(id: "123", sendingUserUid: "12345", receivingUserUid: "134", text: "Hello this is a message from me", timestamp: Timestamp(), postId: ""),
     ]
 }

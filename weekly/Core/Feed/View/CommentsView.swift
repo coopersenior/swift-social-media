@@ -11,6 +11,7 @@ struct CommentsView: View {
     let post: Post
     @State private var user: User? = nil
     @State private var isShowingUserView = false
+    @State private var isShowingUserProfileView = false
     @StateObject var viewModel = FeedViewModel()
     @StateObject private var commentsService: CommentsService
     @State private var selectedCommentId: String? = nil
@@ -82,10 +83,8 @@ struct CommentsView: View {
                         .simultaneousGesture(TapGesture().onEnded {
                             // check if its not the comment author
                             Task {
-                                if !commentsService.isCommentAuthor(withUid: comment.commentUserId) {
-                                    self.user = try await UserService.fetchUser(withUid: comment.commentUserId)
-                                    isShowingUserView = true
-                                }
+                                self.user = try await UserService.fetchUser(withUid: comment.commentUserId)
+                                isShowingUserView = true
                             }
                         })
                     }
@@ -143,8 +142,32 @@ struct CommentsView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(isPresented: $isShowingUserView) {
-                if let user = user {
+                if user != nil {
+                    Text("User View")
+                        .onAppear {
+                            isShowingUserProfileView = true
+                            isShowingUserView = false
+                        }
+                }
+                
+            }
+        }
+        .fullScreenCover(isPresented: $isShowingUserProfileView) {
+            if let user = user {
+                NavigationStack {
                     ProfileView(user: user)
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button(action: {
+                                    isShowingUserProfileView = false  // Make sure this dismisses the fullScreenCover
+                                }) {
+//                                    Image(systemName: "arrow.left.circle.fill")
+//                                        .font(.title)
+//                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
                 }
             }
         }

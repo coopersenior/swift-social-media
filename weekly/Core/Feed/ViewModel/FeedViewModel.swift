@@ -13,11 +13,12 @@ import FirebaseStorage
 class FeedViewModel: ObservableObject {
     @Published var posts = [Post]()
     private var postsListener: ListenerRegistration?
+    @Published var displayTimeToPostMessage: Bool = false
     
     init() {
         Task {
             try await fetchPosts()
-            listenToPosts()
+            //listenToPosts()
         }
     }
     
@@ -31,6 +32,17 @@ class FeedViewModel: ObservableObject {
         self.posts = allPosts.filter { post in
             // Include posts from friends or the current user
             friends.contains(where: { $0.id == post.ownerUid }) || post.ownerUid == uid
+        }
+    }
+    
+    func getDisplayTimeToPostMessage() {
+        Task {
+            guard let uid = Auth.auth().currentUser?.uid else { return }
+            let hasPosted = await (try? PostService.checkHasPosted(uid: uid)) ?? false
+            DispatchQueue.main.async {
+                //print("OUTPUT from time to post!!: ", !hasPosted)
+                self.displayTimeToPostMessage = !hasPosted  // TODO verify logic but user should always be prompted to post if they havent
+            }
         }
     }
     
@@ -104,6 +116,7 @@ class FeedViewModel: ObservableObject {
     
     // listeners for live updates
     func listenToPosts() {
+        getDisplayTimeToPostMessage()
         postsListener = Firestore.firestore()
             .collection("posts")
             .order(by: "timestamp", descending: true) // Order posts by timestamp
@@ -121,7 +134,10 @@ class FeedViewModel: ObservableObject {
     }
     
     func triggerReRender() {
-        Task { try await fetchPosts() }
+        Task {
+            try await fetchPosts()
+            getDisplayTimeToPostMessage()
+        }
         // This function doesn't need to do anything with the posts.
         // Its purpose is to trigger a re-render of the View.
         objectWillChange.send()

@@ -17,6 +17,7 @@ struct Post: Identifiable, Hashable, Codable {
     let timestamp: Timestamp
     var user: User?
     var blurred: Bool?
+    var hiddenFromNonFriends: Bool?
 }
 
 extension Post {

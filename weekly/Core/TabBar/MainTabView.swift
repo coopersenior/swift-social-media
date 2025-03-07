@@ -36,7 +36,7 @@ struct MainTabView: View {
                     selectedIndex = 1
                 }
                 .tabItem {
-                    Image(systemName: "plus.square")
+                    Image(systemName: "plus.app")
                 }.tag(1)
             
 //            Text("Notifications")
@@ -52,10 +52,11 @@ struct MainTabView: View {
                     selectedIndex = 2
                 }
                 .tabItem {
-                    Image(systemName: "person")
+                    Image(systemName: "person.fill")
                 }.tag(2)
         }
         .tint(colorScheme == .dark ? .white : .black)
+        .imageScale(.large)
     }
 }
 

@@ -22,6 +22,7 @@ struct FeedCell: View {
     @State private var selectedPostId: String? = nil
     @State private var showConfirmation = false
     @State private var showCommentsSheet = false
+    @State private var showShareSheet = false
     @State private var userProfileView = false
     @State private var navigateToUpload = false
     @State private var selectedIndex: Int = 0
@@ -111,6 +112,7 @@ struct FeedCell: View {
                         .clipShape(Rectangle())
                         .scaleEffect(scale.isNaN ? 1.0 : scale)
                         .blur(radius: (post.blurred ?? false) ? 25 : 0)
+                        .blur(radius: (post.hiddenFromNonFriends ?? false) ? 50 : 0)
                         .cornerRadius(10)
                         .gesture(
                             MagnificationGesture()
@@ -124,7 +126,8 @@ struct FeedCell: View {
                         .clipped()
                         .onTapGesture(count: 2) {
                             let blur = post.blurred ?? false
-                            if !blur {
+                            let hidden = post.hiddenFromNonFriends ?? false
+                            if !blur && !hidden {
                                 impactFeedbackGenerator.prepare()
                                 impactFeedbackGenerator.impactOccurred()
                                 showHeart = true
@@ -176,6 +179,17 @@ struct FeedCell: View {
                                         selectedIndex = 1
                                     }
                                 }
+                                HStack {
+                                    if let hidden = post.hiddenFromNonFriends, hidden {
+                                        VStack {
+                                            Text("You are not friends with the owner of the post.")
+                                                .font(.footnote)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.white)
+                                                .padding()
+                                        }
+                                    }
+                                }
                                 
                                 // Heart image appears on double tap (and fades in and out)
                                 Image(systemName: "heart.fill")
@@ -219,10 +233,12 @@ struct FeedCell: View {
                                 .foregroundColor(isLiked ? .red : (colorScheme == .dark ? .white : .black))
                         }
                         .disabled(post.blurred ?? false ? true : false)
+                        .disabled(post.hiddenFromNonFriends ?? false ? true : false)
                         .opacity(post.blurred ?? false ? 0.5 : 1)
+                        .opacity(post.hiddenFromNonFriends ?? false ? 0.5 : 1)
                         
                         Button {
-                            presentCommentsView()
+                            showCommentsSheet.toggle()
                             impactFeedbackGenerator.prepare()
                             impactFeedbackGenerator.impactOccurred()
                         } label: {
@@ -231,10 +247,12 @@ struct FeedCell: View {
                                 .foregroundColor(colorScheme == .dark ? .white : .black)
                         }
                         .disabled(post.blurred ?? false ? true : false)
+                        .disabled(post.hiddenFromNonFriends ?? false ? true : false)
                         .opacity(post.blurred ?? false ? 0.5 : 1)
+                        .opacity(post.hiddenFromNonFriends ?? false ? 0.5 : 1)
                         
                         Button {
-                            presentSharePostView()
+                            showShareSheet.toggle()
                             impactFeedbackGenerator.prepare()
                             impactFeedbackGenerator.impactOccurred()
                         } label: {
@@ -243,7 +261,9 @@ struct FeedCell: View {
                                 .foregroundColor(colorScheme == .dark ? .white : .black)
                         }
                         .disabled(post.blurred ?? false ? true : false)
+                        .disabled(post.hiddenFromNonFriends ?? false ? true : false)
                         .opacity(post.blurred ?? false ? 0.5 : 1)
+                        .opacity(post.hiddenFromNonFriends ?? false ? 0.5 : 1)
                         
                         Spacer()
                     }
@@ -281,6 +301,18 @@ struct FeedCell: View {
                 .fullScreenCover(isPresented: $navigateToUpload) {
                     UploadPostView(tabIndex: $selectedIndex)
                         .navigationBarBackButtonHidden()
+                }
+                .sheet(isPresented: $showCommentsSheet) {
+                    // Presenting CommentsView as a half-screen sheet
+                    CommentsView(post: post)
+                        .presentationDetents([.medium, .large]) // Half screen and full screen options
+                        .presentationDragIndicator(.visible) // Shows the grabber for resizing
+                }
+                .sheet(isPresented: $showShareSheet) {
+                    // Presenting CommentsView as a half-screen sheet
+                    SharePostView(post: post)
+                        .presentationDetents([.medium, .large]) // Half screen and full screen options
+                        .presentationDragIndicator(.visible) // Shows the grabber for resizing
                 }
             }
             // here
@@ -320,42 +352,6 @@ struct FeedCell: View {
         }, message: {
             Text("This action cannot be undone.")
         })
-    }
-    
-    func presentCommentsView() {
-        // Find the current top-most UIViewController
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
-            // Create and present CommentsViewController
-            let commentsViewController = CommentsViewModel(post: post)
-
-            // Configure sheet presentation
-            if let sheet = commentsViewController.presentationController as? UISheetPresentationController {
-                sheet.detents = [.medium(), .large()] // Set height to half-screen
-                sheet.prefersGrabberVisible = true // Show grabber for resizing
-            }
-
-            // Present the CommentsViewController
-            rootVC.present(commentsViewController, animated: true)
-        }
-    }
-    
-    func presentSharePostView() {
-        // Find the current top-most UIViewController
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
-            // Create and present CommentsViewController
-            let commentsViewController = ShareProfileViewModel(post: post)
-
-            // Configure sheet presentation
-            if let sheet = commentsViewController.presentationController as? UISheetPresentationController {
-                sheet.detents = [.medium(), .large()] // Set height to half-screen
-                sheet.prefersGrabberVisible = true // Show grabber for resizing
-            }
-
-            // Present the CommentsViewController
-            rootVC.present(commentsViewController, animated: true)
-        }
     }
 }
 

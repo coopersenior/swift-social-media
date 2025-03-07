@@ -14,14 +14,17 @@ struct ProfileFriendButton: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var selectedUserId: String? = nil
     @State private var showConfirmation = false
+    @State private var isLoading: Bool = true
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
     var body: some View {
+        let isFriend = viewModel.isFriend(userId: user.id)
+        let isRequestRecieved = viewModel.isRequestRecieved(userId: user.id)
         Button {
             impactFeedbackGenerator.prepare()
             impactFeedbackGenerator.impactOccurred()
-            if viewModel.isFriend(userId: user.id){
+            if isFriend {
                 // call remove friend with same warning popup
                 selectedUserId = user.id
                 showConfirmation = true
@@ -30,7 +33,7 @@ struct ProfileFriendButton: View {
                 print("unsend req")
                 viewModel.denyFriendRequest(friendUid: user.id)
                 isRequestSent = false
-            } else if viewModel.isRequestRecieved(userId: user.id){
+            } else if isRequestRecieved {
                 // accept friend req
                 print("accept req")
                 viewModel.acceptFriendRequest(friendUid: user.id)
@@ -42,19 +45,36 @@ struct ProfileFriendButton: View {
                 isRequestSent = true
             }
         } label: {
-            Text(viewModel.isFriend(userId: user.id) ? "Remove Friend" : isRequestSent ? "Request Sent" : viewModel.isRequestRecieved(userId: user.id) ? "Accept Request" : "Add Friend")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .frame(width: 360, height: 32)
-                .background(viewModel.isFriend(userId: user.id) ? .clear : isRequestSent ? .clear : Color(.systemBlue))
-                .foregroundColor(viewModel.isFriend(userId: user.id) ? colorScheme == .dark ? .white : .black : isRequestSent ? colorScheme == .dark ? .white : .black : .white)
-                .cornerRadius(6)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(viewModel.isFriend(userId: user.id) ? Color.gray : isRequestSent ? Color.gray : .clear, lineWidth: 1)
-                )
+            if !isLoading {
+                Text(isFriend ? "Remove Friend" : isRequestSent ? "Request Sent" : isRequestRecieved ? "Accept Request" : "Add Friend")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .frame(width: 360, height: 32)
+                    .background(viewModel.isFriend(userId: user.id) ? .clear : isRequestSent ? .clear : Color(.systemBlue))
+                    .foregroundColor(viewModel.isFriend(userId: user.id) ? colorScheme == .dark ? .white : .black : isRequestSent ? colorScheme == .dark ? .white : .black : .white)
+                    .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(isFriend ? Color.gray : isRequestSent ? Color.gray : .clear, lineWidth: 1)
+                    )
+            } else {
+                Text("")
+                    .frame(width: 360, height: 32)
+                    .background(.clear)
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
+                    .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.gray, lineWidth: 1)
+                    )
+            }
+            
         }
         .onAppear {
+            Task {
+                try? await Task.sleep(nanoseconds: 200_000_000) // 500ms (half a second)
+                isLoading = false
+            }
             viewModel.listenToFriendRequests()
             viewModel.listenToFriends()
             viewModel.listenToSuggestedUsers()
