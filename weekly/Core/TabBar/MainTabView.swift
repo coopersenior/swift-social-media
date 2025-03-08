@@ -12,6 +12,7 @@ struct MainTabView: View {
     @Environment(\.colorScheme) var colorScheme
     
     @State private var selectedIndex = 0
+    @State private var opacity: Double = 0
     
     var body: some View {
         TabView(selection: $selectedIndex) {
@@ -57,6 +58,12 @@ struct MainTabView: View {
         }
         .tint(colorScheme == .dark ? .white : .black)
         .imageScale(.large)
+        .opacity(opacity) // Use the state for opacity
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                opacity = 1.0
+            }
+        }
     }
 }
 

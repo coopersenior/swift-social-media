@@ -20,179 +20,167 @@ struct FeedView: View {
     @StateObject var friendRequestsViewModel = AddOrSearchViewModel()
     @StateObject var messagesViewModel = MessagesViewModel()
     @State private var showNoPostsMessage = false
-    @State private var isLoading = false
-    @State private var isViewLoaded = false
+    @State private var isLoading = true
     @State private var navigateToUpload = false
+    @State private var isShowingSplash = true
     @State private var selectedIndex: Int = 0
     @Environment(\.colorScheme) var colorScheme
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                if isLoading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle())
-                        .padding()
-                } else {
-                    LazyVStack(spacing: 32) {
-                        if viewModel.displayTimeToPostMessage {
-                            VStack {
-                                HStack {
-                                    Image("icon")
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 40, height: 40)
-                                        .clipShape(Circle())
-                                    
-                                    Text("Weekly")
-                                        .font(.footnote)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(colorScheme == .dark ? .white : .black)
-                                    Spacer()
-                                }
-                                .padding(.leading, 8)
-                                
-                                Image("weeklyTime")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .clipShape(Rectangle())
-                                    .blur(radius: 20)
-                                    .cornerRadius(10)
-                                
-                                //print(PostService.timeSincePostReset())
-                                Text(PostService.timeSincePostReset())
-                                    .font(.footnote)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.leading, 10)
-                                    .padding(.top, 0.5)
-                                    .foregroundStyle(.gray)
-                            }
-                            .overlay(
-                                VStack {
-                                    Text("It's time to post this week! A new posting week starts each \(PostService.getPostResetDateAsDay())!")
-                                        .font(.footnote)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                        .padding()
-                                    
-                                    Button {
-                                        navigateToUpload = true
-                                        selectedIndex = 1
-                                    } label: {
+        ZStack {
+            if isShowingSplash {
+                SplashScreenView().hideTabBar()
+            } else {
+                NavigationStack {
+                    ScrollView {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .padding()
+                        } else {
+                            LazyVStack(spacing: 32) {
+                                if viewModel.displayTimeToPostMessage {
+                                    VStack {
                                         HStack {
-                                            Image(systemName: "plus.square.fill")
-                                                .tint(colorScheme == .dark ? .white : .black)
-                                            Text("Share a post now!")
+                                            Image("icon")
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 40, height: 40)
+                                                .clipShape(Circle())
+                                            
+                                            Text("Weekly")
                                                 .font(.footnote)
                                                 .fontWeight(.semibold)
                                                 .foregroundColor(colorScheme == .dark ? .white : .black)
+                                            Spacer()
                                         }
-                                        .padding()
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(colorScheme == .dark ? Color.black.opacity(0.25) : Color.white.opacity(0.75))
-                                        )
+                                        .padding(.leading, 8)
+                                        
+                                        Image("weeklyTime")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .clipShape(Rectangle())
+                                            .blur(radius: 20)
+                                            .cornerRadius(10)
+                                        
+                                        //print(PostService.timeSincePostReset())
+                                        Text(PostService.timeSincePostReset())
+                                            .font(.footnote)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .padding(.leading, 10)
+                                            .padding(.top, 0.5)
+                                            .foregroundStyle(.gray)
+                                    }
+                                    .overlay(
+                                        VStack {
+                                            Text("It's time to post this week! A new posting week starts each \(PostService.getPostResetDateAsDay())!")
+                                                .font(.footnote)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.white)
+                                                .padding()
+                                            
+                                            Button {
+                                                navigateToUpload = true
+                                                selectedIndex = 1
+                                            } label: {
+                                                HStack {
+                                                    Image(systemName: "plus.square.fill")
+                                                        .tint(colorScheme == .dark ? .white : .black)
+                                                    Text("Share a post now!")
+                                                        .font(.footnote)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundColor(colorScheme == .dark ? .white : .black)
+                                                }
+                                                .padding()
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .fill(colorScheme == .dark ? Color.black.opacity(0.25) : Color.white.opacity(0.75))
+                                                )
+                                            }
+                                        }
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                            .multilineTextAlignment(.center)
+                                            .padding()
+                                            .onAppear {
+                                                selectedIndex = 1
+                                            }
+                                    )
+                                }
+                                ForEach(viewModel.posts) { post in
+                                    FeedCell(post: post, userProfileView: false)
+                                }
+                                
+                            }
+                            .padding(.top, 4)
+                            
+                            if viewModel.posts.isEmpty {
+                                Text("No posts to view")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .padding()
+                            }
+                        }
+                    }
+                    .fullScreenCover(isPresented: $navigateToUpload) {
+                        UploadPostView(tabIndex: $selectedIndex)
+                            .navigationBarBackButtonHidden()
+                    }
+                    .navigationTitle("")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            NavigationLink(destination: AddOrSearchView().hideTabBar()) {
+                                ZStack {
+                                    Image(systemName: "person.2.badge.gearshape.fill")
+                                        .imageScale(.large)
+                                    
+                                    // Add red dot if there are friend requests
+                                    if !friendRequestsViewModel.friendRequests.isEmpty {
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: 10, height: 10)
+                                            .offset(x: 12, y: -10) // Position the red dot
                                     }
                                 }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .multilineTextAlignment(.center)
-                                .padding()
-                                .onAppear {
-                                    selectedIndex = 1
+                            }
+                            .simultaneousGesture(
+                                TapGesture().onEnded {
+                                    impactFeedbackGenerator.prepare()
+                                    impactFeedbackGenerator.impactOccurred()
                                 }
                             )
                         }
-                        ForEach(viewModel.posts) { post in
-                            FeedCell(post: post, userProfileView: false)
+                        ToolbarItem(placement: .principal) { // Center the image like a title
+                            Image(colorScheme == .dark ? "weekly-light" : "weekly-dark")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 35) // Adjust the size of the image
                         }
-                        
-                    }
-                    .padding(.top, 4)
-
-                    if showNoPostsMessage {
-                        Text("No posts to view")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .padding()
-                    }
-                }
-            }
-            .fullScreenCover(isPresented: $navigateToUpload) {
-                UploadPostView(tabIndex: $selectedIndex)
-                    .navigationBarBackButtonHidden()
-            }
-//            .overlay(
-//                ZStack {
-//                    if isViewLoaded && viewModel.displayTimeToPostMessage {
-//                        HStack {
-//                            Text("It's time to post this week!")
-//                                .font(.subheadline)
-//                                .fontWeight(.semibold)
-//                                .padding(12)
-//                                .background(.ultraThinMaterial) // Blurred background
-//                                .clipShape(RoundedRectangle(cornerRadius: 12))
-//                        }
-//                        .transition(.opacity) // Smooth fade-in
-//                        .frame(height: 20)
-//                    }
-//                }
-//                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-//                .padding(.top, 10)
-//            )
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    NavigationLink(destination: AddOrSearchView().hideTabBar()) {
-                        ZStack {
-                            Image(systemName: "person.2.badge.gearshape.fill")
-                                .imageScale(.large)
-
-                                // Add red dot if there are friend requests
-                                if !friendRequestsViewModel.friendRequests.isEmpty {
-                                    Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 10, height: 10)
-                                    .offset(x: 12, y: -10) // Position the red dot
+                        ToolbarItem(placement: .topBarTrailing) {
+                            NavigationLink(destination: MessagesView().hideTabBar()) {
+                                ZStack {
+                                    Image(systemName: "ellipsis.message.fill")
+                                        .imageScale(.large)
+                                    
+                                    // Add red dot if there are new messages
+                                    if messagesViewModel.hasUnreadMessages {
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: 10, height: 10)
+                                            .offset(x: 12, y: -10) // Position the red dot
+                                    }
                                 }
                             }
-                    }
-                    .simultaneousGesture(
-                        TapGesture().onEnded {
-                            impactFeedbackGenerator.prepare()
-                            impactFeedbackGenerator.impactOccurred()
-                        }
-                    )
-                }
-                ToolbarItem(placement: .principal) { // Center the image like a title
-                    Image(colorScheme == .dark ? "weekly-light" : "weekly-dark")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 35) // Adjust the size of the image
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink(destination: MessagesView().hideTabBar()) {
-                        ZStack {
-                            Image(systemName: "ellipsis.message.fill")
-                                .imageScale(.large)
-
-                            // Add red dot if there are new messages
-                            if messagesViewModel.hasUnreadMessages {
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 10, height: 10)
-                                    .offset(x: 12, y: -10) // Position the red dot
-                            }
+                            .simultaneousGesture(
+                                TapGesture().onEnded {
+                                    impactFeedbackGenerator.prepare()
+                                    impactFeedbackGenerator.impactOccurred()
+                                }
+                            )
                         }
                     }
-                    .simultaneousGesture(
-                        TapGesture().onEnded {
-                            impactFeedbackGenerator.prepare()
-                            impactFeedbackGenerator.impactOccurred()
-                        }
-                    )
                 }
             }
         }
@@ -200,15 +188,24 @@ struct FeedView: View {
             viewModel.getDisplayTimeToPostMessage()
             Task {
                 if viewModel.posts.isEmpty { // Only fetch if there are no cached posts
-                    isLoading = true
-                    try await viewModel.fetchPosts()
-                    showNoPostsMessage = viewModel.posts.isEmpty
-                    isLoading = false
+                    print("starting splash wait")
+                    await hideSplashScreenWithDelay()
                 } else {
-                    showNoPostsMessage = viewModel.posts.isEmpty
-                    isLoading = false // Skip loading if posts already exist
+                    isShowingSplash = false
                 }
-                isViewLoaded = true
+            }
+            Task {
+                if viewModel.posts.isEmpty { // Only fetch if there are no cached posts
+                    print("starting fetch posts")
+                    try await viewModel.fetchPosts()
+                    isLoading = false
+                    //isShowingSplash = false
+                    print("loading done 1, killing splash")
+                } else {
+                    isLoading = false // Skip loading if posts already exist
+                    isShowingSplash = false
+                    print("loading done 2")
+                }
             }
             viewModel.listenToPosts()
             friendRequestsViewModel.listenToFriendRequests()
@@ -220,8 +217,38 @@ struct FeedView: View {
             messagesViewModel.stopListening()
         }
     }
+    
+    func hideSplashScreenWithDelay() async {
+        try? await Task.sleep(nanoseconds: 2_500_000_000)
+        withAnimation(.easeOut(duration: 0.5)) {
+            isShowingSplash = false
+            print("splash screen done")
+        }
+    }
 }
 
+struct SplashScreenView: View {
+    @Environment(\.colorScheme) var colorScheme
+    @State private var opacity: Double = 0
+    
+    var body: some View {
+        ZStack {
+            Color(.systemBackground) // Matches system theme
+                .ignoresSafeArea()
+            
+            Image(colorScheme == .dark ? "weekly-light" : "weekly-dark")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 200, height: 200) // Adjust size as needed
+                .opacity(opacity) // Use the state for opacity
+                .onAppear {
+                    withAnimation(.easeIn(duration: 0.5)) {
+                        opacity = 0.9 // Fade-in effect
+                    }
+                }
+        }
+    }
+}
 
 #Preview {
     FeedView()
