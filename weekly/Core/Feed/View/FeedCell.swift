@@ -14,6 +14,7 @@ struct FeedCell: View {
     @StateObject var viewModel = FeedViewModel()
     @State private var isLiked = false
     @State private var likes: Int
+    @State private var numberOfComments: Int = 0
     @State private var showHeart = false
     @State private var user: User?
     @State private var scale: CGFloat = 1.0
@@ -237,6 +238,10 @@ struct FeedCell: View {
                         .opacity(post.blurred ?? false ? 0.5 : 1)
                         .opacity(post.hiddenFromNonFriends ?? false ? 0.5 : 1)
                         
+                        Text("\(likes)")
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                        
                         Button {
                             showCommentsSheet.toggle()
                             impactFeedbackGenerator.prepare()
@@ -250,6 +255,10 @@ struct FeedCell: View {
                         .disabled(post.hiddenFromNonFriends ?? false ? true : false)
                         .opacity(post.blurred ?? false ? 0.5 : 1)
                         .opacity(post.hiddenFromNonFriends ?? false ? 0.5 : 1)
+                        
+                        Text("\(numberOfComments)") // comments count
+                            .font(.footnote)
+                            .fontWeight(.semibold)
                         
                         Button {
                             showShareSheet.toggle()
@@ -270,18 +279,17 @@ struct FeedCell: View {
                     .padding(.leading, 8)
                     .padding(.top, 4)
                     
-                    // Likes label
-                    Text(likes == 1 ? "\(likes) like" : "\(likes) likes")
-                        .font(.footnote)
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading, 10)
-                        .padding(.top, 1)
-                    
                     // Caption label
                     HStack {
-                        Text("\(user?.username ?? "") ").fontWeight(.semibold) +
-                        Text(post.caption ?? "")
+                        if let user = user {
+                            NavigationLink(destination: ProfileView(user: user)) {
+                                Text("\(user.username) ").fontWeight(.semibold) +
+                                Text(post.caption ?? "")
+                            }
+                        } else {
+                            Text("\(user?.username ?? "") ").fontWeight(.semibold) +
+                            Text(post.caption ?? "")
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 10)
@@ -331,6 +339,9 @@ struct FeedCell: View {
                 
                 viewModel.listenToLikes(for: post.id) { updatedLikes in
                     self.likes = updatedLikes // Update likes count in the FeedCell
+                }
+                viewModel.listenToComments(for: post.id) { updatedComments in
+                    self.numberOfComments = updatedComments // Update likes count in the FeedCell
                 }
             }
         }

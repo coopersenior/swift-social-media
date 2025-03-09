@@ -63,6 +63,23 @@ struct MessageVew: View {
                                 .padding(.top, 0.5)
                                 .foregroundStyle(.gray)
                                 .frame(maxWidth: 260, alignment: .trailing)
+                        } else {
+                            // loading state
+                            VStack {
+                                Image(systemName: "exclamationmark.icloud")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 100, height: 100)
+                                
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                    .padding()
+                            }
+                            .frame(width: 200, height: 200)
+                            .padding()
+                            .background(Color(uiColor: .systemBlue))
+                            .cornerRadius(15)
+                            .foregroundColor(.white)
                         }
                     } else {
                         Text(message.text)
@@ -140,6 +157,22 @@ struct MessageVew: View {
                                 .padding(.leading, 30)
                                 .foregroundStyle(.gray)
                                 .frame(maxWidth: 260, alignment: .leading)
+                        } else {
+                            // loading state
+                            VStack {
+                                Image(systemName: "exclamationmark.icloud")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 100, height: 100)
+                                
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                    .padding()
+                            }
+                            .frame(width: 200, height: 200)
+                            .padding()
+                            .background(Color(uiColor: .systemGray5))
+                            .cornerRadius(15)
                         }
                     } else {
                         HStack {

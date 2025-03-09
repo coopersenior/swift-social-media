@@ -188,7 +188,7 @@ struct FeedView: View {
             viewModel.getDisplayTimeToPostMessage()
             Task {
                 if viewModel.posts.isEmpty { // Only fetch if there are no cached posts
-                    print("starting splash wait")
+                    // print("starting splash wait")
                     await hideSplashScreenWithDelay()
                 } else {
                     isShowingSplash = false
@@ -196,15 +196,15 @@ struct FeedView: View {
             }
             Task {
                 if viewModel.posts.isEmpty { // Only fetch if there are no cached posts
-                    print("starting fetch posts")
+                    // print("starting fetch posts")
                     try await viewModel.fetchPosts()
                     isLoading = false
                     //isShowingSplash = false
-                    print("loading done 1, killing splash")
+                    // print("loading done 1, killing splash")
                 } else {
                     isLoading = false // Skip loading if posts already exist
                     isShowingSplash = false
-                    print("loading done 2")
+                    // print("loading done 2")
                 }
             }
             viewModel.listenToPosts()

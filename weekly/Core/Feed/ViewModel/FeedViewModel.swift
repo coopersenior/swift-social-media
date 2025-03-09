@@ -81,6 +81,27 @@ class FeedViewModel: ObservableObject {
         }
     }
     
+    func listenToComments(for postId: String, updateComments: @escaping (Int) -> Void) {
+        let commentsRef = Firestore.firestore()
+            .collection("posts")
+            .document(postId)
+            .collection("comments")
+
+        commentsRef.addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("Error listening to comments: \(error.localizedDescription)")
+                return
+            }
+
+            // If there are comments, count them, otherwise return 0
+            let count = snapshot?.documents.count ?? 0
+            
+            DispatchQueue.main.async {
+                updateComments(count) // Update the UI with the comment count
+            }
+        }
+    }
+    
     func unlikePost(postId: String) async throws {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let postRef = Firestore.firestore().collection("posts").document(postId)
