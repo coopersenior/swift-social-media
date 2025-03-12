@@ -12,6 +12,7 @@ import FirebaseFirestore
 
 class MessagesViewModel: ObservableObject {
     @Published var users = [User]()
+    @Published var usersFriends = [User]()
     @Published var hasUnreadMessages: Bool = false
     @Published private(set) var unreadMessageUsers: Set<String> = []
     @Published private(set) var recentUsers: [String] = [] {
@@ -27,16 +28,25 @@ class MessagesViewModel: ObservableObject {
     init() {
         loadRecentUsers()
         Task { try await fetchAllUsers() }
+        Task { try await fetchAllFriends() }
         listenToUnreadMessages()
         // sort users by recent messaging
     }
     
     @MainActor
     func fetchAllUsers() async throws {
-        self.users = try await UserService.fetchAllUsers()
         guard let uid = Auth.auth().currentUser?.uid else { return }
+        self.users = try await UserService.fetchAllUsers()
                 
         self.users = self.users.filter { $0.id != uid }
+    }
+    
+    @MainActor
+    func fetchAllFriends() async throws {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        self.usersFriends = try await UserService.fetchAllFriends(withUid: uid)
+                
+        self.usersFriends = self.usersFriends.filter { $0.id != uid }
     }
     
     func listenToMessages() {
@@ -99,6 +109,13 @@ class MessagesViewModel: ObservableObject {
             if self.recentUsers.count > 10 {
                 self.recentUsers.removeLast(self.recentUsers.count - 10)
             }
+        }
+    }
+    
+    func removeRecentUser(userId: String) {
+        DispatchQueue.main.async {
+            // Remove the user if they already exist in the list
+            self.recentUsers.removeAll(where: { $0 == userId })
         }
     }
     

@@ -298,29 +298,22 @@ struct PostService {
     
     static func fetchPostById(postId: String) async throws -> Post? {
         guard let userUid = Auth.auth().currentUser?.uid else { return nil }
+        // Run both asynchronous calls concurrently
+        async let friends = UserService.fetchAllFriends(withUid: userUid)
+        async let posts = fetchFeedPosts(uid: userUid)
         
-        // Fetch the user's friends list
-        let friends = try await UserService.fetchAllFriends(withUid: userUid)
-        
-        // Fetch all posts from the user's feed
-        var posts = try await fetchFeedPosts(uid: userUid)  // Make posts mutable
+        // Wait for results
+        let (friendsList, allPosts) = try await (friends, posts)
         
         // Iterate through the posts and check if any post matches the provided postId
-        for index in 0..<posts.count {
-            var post = posts[index]  // Make post mutable
+        for index in 0..<allPosts.count {
+            var post = allPosts[index]  // Make post mutable
             
             // Check if the current post matches the provided postId
             if post.id == postId {
                 // Check if the current user is friends with the post's owner, or the post owner is the current user
-                if post.ownerUid == userUid || friends.contains(where: { $0.id == post.ownerUid }) {
-                    post.hiddenFromNonFriends = false
-                    posts[index] = post  // Update the post in the array
-                    return post
-                } else {
-                    post.hiddenFromNonFriends = true
-                    posts[index] = post  // Update the post in the array
-                    return post
-                }
+                post.hiddenFromNonFriends = !(post.ownerUid == userUid || friendsList.contains(where: { $0.id == post.ownerUid }))
+                return post
             }
         }
         

@@ -10,38 +10,61 @@ import SwiftUI
 struct MessagesView: View {
     @State private var searchText = ""
     @StateObject var viewModel = MessagesViewModel()
+    @State private var selectedUserId: String? = nil
+    @State private var showConfirmation = false
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
 
     var filteredUsers: [User] {
-        let sortedUsers = viewModel.users.sorted { user1, user2 in
+        // Get friends list
+        let friends = viewModel.usersFriends
+        
+        // Get recent users that exist in viewModel.users
+        let recentUsers = viewModel.recentUsers.compactMap { userId in
+            viewModel.users.first(where: { $0.id == userId })
+        }
+        
+        // Merge recent users and friends while ensuring no duplicates
+        var uniqueUsers = [User]()
+        var seenUserIds = Set<String>()
+        
+        for user in recentUsers + friends {
+            if !seenUserIds.contains(user.id) {
+                uniqueUsers.append(user)
+                seenUserIds.insert(user.id)
+            }
+        }
+        
+        // Sort users by priority
+        let sortedUsers = uniqueUsers.sorted { user1, user2 in
+            let isRecent1 = viewModel.recentUsers.contains(user1.id)
+            let isRecent2 = viewModel.recentUsers.contains(user2.id)
+            
+            // Prioritize recent users
+            if isRecent1 != isRecent2 {
+                return isRecent1
+            }
+            
             let hasUnread1 = viewModel.hasUnreadMessages(for: user1.id)
             let hasUnread2 = viewModel.hasUnreadMessages(for: user2.id)
             
             // Prioritize users with unread messages
             if hasUnread1 != hasUnread2 {
-                return hasUnread1 && !hasUnread2
+                return hasUnread1
             }
             
-            // Secondary sorting: Use index in recentUsers to sort by recency
+            // If both are recent, sort by their position in recentUsers
             if let index1 = viewModel.recentUsers.firstIndex(of: user1.id),
                let index2 = viewModel.recentUsers.firstIndex(of: user2.id) {
                 return index1 < index2 // Lower index means more recent
             }
             
-            // If only one of the users is in recentUsers, prioritize the one in recentUsers
-            if viewModel.recentUsers.contains(user1.id) {
-                return true
-            } else if viewModel.recentUsers.contains(user2.id) {
-                return false
-            }
-            
-            // Default: Keep original order or add any additional sorting logic here
             return false
         }
         
+        // Apply search filtering
         if searchText.isEmpty {
-            return sortedUsers
+            return sortedUsers // Show only recent users + friends
         } else {
             return viewModel.users.filter {
                 $0.username.lowercased().contains(searchText.lowercased()) ||
@@ -80,10 +103,21 @@ struct MessagesView: View {
                         // Update the recent user cache
                         viewModel.updateRecentUser(userId: user.id)
                     })
+                    .simultaneousGesture(
+                        LongPressGesture(minimumDuration: 0.5) // Adjust duration as needed
+                            .onEnded { _ in
+                                if !viewModel.usersFriends.contains(where: { $0.id == user.id }) { // Check if user is not in usersFriends
+                                    impactFeedbackGenerator.prepare()
+                                    impactFeedbackGenerator.impactOccurred()
+                                    selectedUserId = user.id
+                                    showConfirmation = true
+                                }
+                            }
+                    )
                 }
             }
             .padding(.top, 8)
-            .searchable(text: $searchText, prompt: "Search...")
+            .searchable(text: $searchText, prompt: "Search all users...")
         }
         .navigationTitle("Messages")
         .navigationBarTitleDisplayMode(.inline)
@@ -93,6 +127,16 @@ struct MessagesView: View {
         .onDisappear {
             viewModel.stopListening()
         }
+        .alert("Are you sure?", isPresented: $showConfirmation, actions: {
+            Button("Remove from recents", role: .destructive) {
+                if let userId = selectedUserId {
+                    viewModel.removeRecentUser(userId: userId)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }, message: {
+            Text("This will not remove friends")
+        })
     }
 }
 
