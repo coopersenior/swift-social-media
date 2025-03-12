@@ -222,7 +222,6 @@ struct FeedView: View {
         try? await Task.sleep(nanoseconds: 2_500_000_000)
         withAnimation(.easeOut(duration: 0.5)) {
             isShowingSplash = false
-            print("splash screen done")
         }
     }
 }

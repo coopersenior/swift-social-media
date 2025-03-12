@@ -125,6 +125,7 @@ struct MessagesView: View {
             viewModel.listenToMessages()
         }
         .onDisappear {
+            
             viewModel.stopListening()
         }
         .alert("Are you sure?", isPresented: $showConfirmation, actions: {

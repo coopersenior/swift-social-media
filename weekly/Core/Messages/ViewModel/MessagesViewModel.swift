@@ -27,8 +27,8 @@ class MessagesViewModel: ObservableObject {
     
     init() {
         loadRecentUsers()
-        Task { try await fetchAllUsers() }
         Task { try await fetchAllFriends() }
+        Task { try await fetchAllUsers() }
         listenToUnreadMessages()
         // sort users by recent messaging
     }
@@ -47,7 +47,25 @@ class MessagesViewModel: ObservableObject {
         self.usersFriends = try await UserService.fetchAllFriends(withUid: uid)
                 
         self.usersFriends = self.usersFriends.filter { $0.id != uid }
+        
+        DispatchQueue.main.async {
+            let friendIds = self.usersFriends.map { $0.id }
+            self.addFriendsToRecentUsers(friendIds)
+        }
     }
+    
+    private func addFriendsToRecentUsers(_ friendIds: [String]) {
+            // Remove friends that are already in recentUsers to avoid duplicates
+            let uniqueFriendIds = friendIds.filter { !self.recentUsers.contains($0) }
+            
+            // Prepend new friends to recentUsers
+            self.recentUsers = uniqueFriendIds + self.recentUsers
+            
+            // Trim to 10 if necessary
+            if self.recentUsers.count > 10 {
+                self.recentUsers.removeLast(self.recentUsers.count - 10)
+            }
+        }
     
     func listenToMessages() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
