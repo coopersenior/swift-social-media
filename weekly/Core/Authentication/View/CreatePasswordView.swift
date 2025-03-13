@@ -28,7 +28,7 @@ struct CreatePasswordView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
             
-            TextField("password", text: $viewModel.password)
+            SecureField("password", text: $viewModel.password)
                 .autocapitalization(.none)
                 .modifier(TextFieldModifier())
                 .padding(.top)
@@ -64,6 +64,7 @@ struct CreatePasswordView: View {
                 Image(systemName: "chevron.left")
                     .imageScale(.large)
                     .onTapGesture {
+                        viewModel.password = ""
                         dismiss()
                     }
             }

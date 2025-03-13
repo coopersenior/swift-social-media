@@ -47,21 +47,41 @@ struct CommentsView: View {
                     ForEach(commentsService.comments) { comment in
                         HStack {
                             CommentCircularProfileImageView(comment: comment, size: .xSmall)
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    Task {
+                                        self.user = try await UserService.fetchUser(withUid: comment.commentUserId)
+                                        isShowingUserView = true
+                                    }
+                                })
                             VStack(alignment: .leading) {
                                 HStack {
                                     if let username = comment.commentUsername {
                                         Text(username)
                                             .fontWeight(.semibold)
+                                            .simultaneousGesture(TapGesture().onEnded {
+                                                Task {
+                                                    self.user = try await UserService.fetchUser(withUid: comment.commentUserId)
+                                                    isShowingUserView = true
+                                                }
+                                            })
                                     }
+                                    
                                     Text(getTimeElapsed(comment: comment))
                                         .font(.footnote)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .padding(.leading, 10)
                                         .padding(.top, 0.5)
                                         .foregroundStyle(.gray)
+                                        .simultaneousGesture(TapGesture().onEnded {
+                                            Task {
+                                                self.user = try await UserService.fetchUser(withUid: comment.commentUserId)
+                                                isShowingUserView = true
+                                            }
+                                        })
                                 }
-                                Text(comment.text)
+                                formatCommentText(comment: comment)
                                     .font(.subheadline)
+                                
                             }
                             .font(.footnote)
                             Spacer()
@@ -80,13 +100,7 @@ struct CommentsView: View {
                                     }
                                 }
                         )
-                        .simultaneousGesture(TapGesture().onEnded {
-                            // check if its not the comment author
-                            Task {
-                                self.user = try await UserService.fetchUser(withUid: comment.commentUserId)
-                                isShowingUserView = true
-                            }
-                        })
+                        
                     }
                     
                     if commentsService.comments.count == 0 {
@@ -162,9 +176,7 @@ struct CommentsView: View {
                                 Button(action: {
                                     isShowingUserProfileView = false  // Make sure this dismisses the fullScreenCover
                                 }) {
-//                                    Image(systemName: "arrow.left.circle.fill")
-//                                        .font(.title)
-//                                        .foregroundColor(.blue)
+                                    // blank
                                 }
                             }
                         }
@@ -172,4 +184,43 @@ struct CommentsView: View {
             }
         }
     }
+    
+    @ViewBuilder
+        func formatCommentText(comment: Comment) -> some View {
+            if let username = extractUsername(from: comment.text),
+               let range = comment.text.range(of: "@\(username)") {
+                let before = String(comment.text[..<range.lowerBound])
+                let after = String(comment.text[range.upperBound...])
+                
+                HStack(spacing: 0) {
+                    Text(before)
+                    Text("@\(username)")
+                        .foregroundStyle(Color(.systemBlue))
+                        .simultaneousGesture(TapGesture().onEnded {
+                            Task {
+                                self.user = try await UserService.fetchUserByUsername(username)
+                               
+                                if let validUser = self.user {
+                                    print(validUser.username)
+                                    isShowingUserView = true
+                                }
+                                
+                            }
+                        })
+                    
+                    Text(after)
+                }
+            } else {
+                Text(comment.text)
+            }
+        }
+        
+        func extractUsername(from text: String) -> String? {
+            let words = text.components(separatedBy: .whitespaces)
+            if let mentionWord = words.first(where: { $0.hasPrefix("@") }) {
+                let username = String(mentionWord.dropFirst())
+                return username.isEmpty ? nil : username
+            }
+            return nil
+        }
 }

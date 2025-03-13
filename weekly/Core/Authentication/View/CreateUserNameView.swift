@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CreateUserNameView: View {
     @Environment(\.dismiss) var dismiss
+    @State private var usernameAvailable = false
     @EnvironmentObject var viewModel: RegistrationViewModel
     
     var body: some View {
@@ -28,6 +29,23 @@ struct CreateUserNameView: View {
                 .autocapitalization(.none)
                 .modifier(TextFieldModifier())
                 .padding(.top)
+                .onChange(of: viewModel.username) {
+                    Task {
+                        do {
+                            usernameAvailable = try await viewModel.checkIfUsernameValid(from: viewModel.username)
+                        } catch {
+                            print("Error checking username: \(error.localizedDescription)")
+                            usernameAvailable = false // Assume unavailable if an error occurs
+                        }
+                    }
+                }
+            
+            if !usernameAvailable && !viewModel.username.isEmpty {
+                Text("Username unavailable. Please choose another.")
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .transition(.opacity)
+            }
             
             NavigationLink {
                 CreatePasswordView()
@@ -42,7 +60,8 @@ struct CreateUserNameView: View {
                     .cornerRadius(8)
             }
             .padding(.vertical)
-            .disabled(viewModel.username.isEmpty)
+            .disabled(viewModel.username.isEmpty || !usernameAvailable)
+            // function to check if that usernanme is taken
 
             
             Spacer()
@@ -52,6 +71,7 @@ struct CreateUserNameView: View {
                 Image(systemName: "chevron.left")
                     .imageScale(.large)
                     .onTapGesture {
+                        viewModel.username = ""
                         dismiss()
                     }
             }

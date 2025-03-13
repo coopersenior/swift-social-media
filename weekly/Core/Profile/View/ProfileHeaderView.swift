@@ -41,6 +41,12 @@ struct ProfileHeaderView: View {
                         .font(.footnote)
                         .fontWeight(.semibold)
                 }
+                
+                Text("@\(user.username)")
+                    .font(.footnote)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color(.systemBlue))
+                
                 if let bio  = user.bio {
                     Text(bio)
                         .font(.footnote)

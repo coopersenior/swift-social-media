@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseAuth
+import FirebaseFirestore
 
 class RegistrationViewModel: ObservableObject {
     @Published var username = ""
@@ -25,6 +26,19 @@ class RegistrationViewModel: ObservableObject {
         }
     }
     
+    func checkIfUsernameValid(from text: String) async throws -> Bool {
+        let db = Firestore.firestore()
+        let usersRef = db.collection("users")
+        
+        let querySnapshot = try await usersRef.getDocuments()
+        for document in querySnapshot.documents {
+            if let username = document.data()["username"] as? String, username == text {
+                return false
+            }
+        }
+        return true
+    }
+     
     func sendPasswordResetEmail(to email: String, completion: @escaping (Result<String, Error>) -> Void) {
         Auth.auth().sendPasswordReset(withEmail: email) { error in
             if let error = error {

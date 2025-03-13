@@ -12,6 +12,7 @@ import Kingfisher
 struct MessageVew: View {
     var message: Message
     let user: User
+    @State private var taggedUser: User?
     @State private var post : Post?
     @State private var selectedMessageId: String? = nil
     @State private var selectedReceiverId: String? = nil
@@ -24,8 +25,16 @@ struct MessageVew: View {
     private var timeElapsed: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .short
+
         let date = message.timestamp.dateValue()
-        return formatter.localizedString(for: date, relativeTo: Date())
+        let now = Date()
+        let timeInterval = now.timeIntervalSince(date)
+
+        if timeInterval < 5 {
+            return "Just now"
+        }
+
+        return formatter.localizedString(for: date, relativeTo: now)
     }
     
     var body: some View {
@@ -82,13 +91,15 @@ struct MessageVew: View {
                             .foregroundColor(.white)
                         }
                     } else {
-                        Text(message.text)
+                        formatMessageText(from: message.text)
                             .padding()
                             .background(Color(uiColor: .systemBlue))
                             .foregroundColor(.white)
                             .cornerRadius(20)
                             .font(.subheadline)
                             .frame(maxWidth: 260, alignment: .trailing)
+                        //Text(message.text)
+                            
                         Text(timeElapsed)
                             .font(.footnote)
                             .padding(.top, 0.5)
@@ -178,7 +189,7 @@ struct MessageVew: View {
                         HStack {
                             CircularProfileImageView(user: user, size: .xSmall)
                             HStack {
-                                Text(message.text)
+                                formatMessageText(from: message.text)
                                     .padding()
                                     .background(Color(uiColor: .systemGray5))
                                     .cornerRadius(20)
@@ -233,6 +244,45 @@ struct MessageVew: View {
             Text("This action cannot be undone.")
         })
     }
+    
+    @ViewBuilder
+        func formatMessageText(from message: String) -> some View {
+            if let username = extractUsername(from: message),
+               let range = message.range(of: "@\(username)") {
+                let before = String(message[..<range.lowerBound])
+                let after = String(message[range.upperBound...])
+                
+                HStack(spacing: 0) {
+                    Text(before)
+                    if let user = taggedUser {
+                        NavigationLink(destination: ProfileView(user: user)) {
+                            Text("@\(user.username)")
+                        }
+                    } else {
+                        Text("@\(username)")
+                    }
+                    
+                    Text(after)
+                }
+                .onAppear {
+                    Task {
+                        self.taggedUser = try await UserService.fetchUserByUsername(username)
+                    }
+                }
+                
+            } else {
+                Text(message)
+            }
+        }
+        
+        func extractUsername(from text: String) -> String? {
+            let words = text.components(separatedBy: .whitespaces)
+            if let mentionWord = words.first(where: { $0.hasPrefix("@") }) {
+                let username = String(mentionWord.dropFirst())
+                return username.isEmpty ? nil : username
+            }
+            return nil
+        }
 }
 
 #Preview {

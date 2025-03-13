@@ -68,6 +68,7 @@ struct AddEmailView: View {
                 Image(systemName: "chevron.left")
                     .imageScale(.large)
                     .onTapGesture {
+                        viewModel.email = ""
                         dismiss()
                     }
             }

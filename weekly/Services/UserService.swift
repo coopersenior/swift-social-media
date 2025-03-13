@@ -16,6 +16,21 @@ struct UserService {
         return try snapshot.data(as: User.self)
     }
     
+    static func fetchUserByUsername(_ username: String) async throws -> User? {
+        let lowercaseUsername = username.lowercased()
+        let querySnapshot = try await Firestore.firestore()
+            .collection("users")
+            .whereField("username", isEqualTo: lowercaseUsername)
+            .limit(to: 1)
+            .getDocuments()
+        
+        guard let document = querySnapshot.documents.first else {
+            return nil
+        }
+        
+        return try document.data(as: User.self)
+    }
+    
     static func isNotSelf(withUid uid: String) -> Bool {
         guard let currentUserUid = Auth.auth().currentUser?.uid else { return false }
         return currentUserUid != uid
