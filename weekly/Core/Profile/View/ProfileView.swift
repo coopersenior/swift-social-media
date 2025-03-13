@@ -10,6 +10,8 @@ import SwiftUI
 struct ProfileView: View {
     
     @State var user: User
+    @State private var dragOffset: CGFloat = 0
+    @Environment(\.dismiss) var dismiss
   
     var body: some View {
         NavigationStack {
@@ -22,6 +24,17 @@ struct ProfileView: View {
             }
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
+            .gesture(
+                DragGesture()
+                    .onEnded { value in
+                        let screenWidth = UIScreen.main.bounds.width
+                        if value.startLocation.x < 100 && value.translation.width > screenWidth * 0.4 {
+                            withAnimation(.easeInOut) {
+                                dismiss()
+                            }
+                        }
+                    }
+            )
         }
     }
 }
