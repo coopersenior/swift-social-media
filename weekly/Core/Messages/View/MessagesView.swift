@@ -119,13 +119,13 @@ struct MessagesView: View {
             .padding(.top, 8)
             .searchable(text: $searchText, prompt: "Search all users...")
         }
+        .scrollIndicators(.hidden)
         .navigationTitle("Messages")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             viewModel.listenToMessages()
         }
         .onDisappear {
-            
             viewModel.stopListening()
         }
         .alert("Are you sure?", isPresented: $showConfirmation, actions: {
