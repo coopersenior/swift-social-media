@@ -12,6 +12,7 @@ struct AddOrSearchView: View {
     @StateObject var viewModel = AddOrSearchViewModel()
     @State private var selectedUserId: String? = nil
     @State private var showConfirmation = false
+    @Binding var isPresented: Bool
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
@@ -191,8 +192,21 @@ struct AddOrSearchView: View {
                 .padding(.top, 8)
                 .searchable(text: $searchText, prompt: "Add or search friends")
             }
+            .scrollIndicators(.hidden)
             .navigationTitle("Manage Friends")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isPresented = false // Dismiss the view
+                        }
+                    }) {
+                        Image(systemName: "chevron.right") // Back arrow
+                            .imageScale(.large)
+                    }
+                }
+            }
         }
         .onAppear {
             viewModel.listenToFriendRequests()
@@ -216,5 +230,5 @@ struct AddOrSearchView: View {
 }
 
 #Preview {
-    AddOrSearchView()
+    AddOrSearchView(isPresented: .constant(true))
 }

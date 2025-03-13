@@ -10,7 +10,7 @@ import SwiftUI
 extension View {
     func hideTabBar() -> some View {
         self
-            .toolbar(.hidden, for: .tabBar) // Hides the tab bar
+            .toolbar(.hidden, for: .tabBar)
     }
 }
 
@@ -24,6 +24,9 @@ struct FeedView: View {
     @State private var navigateToUpload = false
     @State private var isShowingSplash = true
     @State private var selectedIndex: Int = 0
+    @State private var isShowingLeftView = false
+    @State private var dragOffset: CGFloat = 0 // Track drag offset for swipe-to-dismiss
+    @State private var backgroundOffset: CGFloat = 0
     @Environment(\.colorScheme) var colorScheme
     
     let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
@@ -65,7 +68,6 @@ struct FeedView: View {
                                             .blur(radius: 20)
                                             .cornerRadius(10)
                                         
-                                        //print(PostService.timeSincePostReset())
                                         Text(PostService.timeSincePostReset())
                                             .font(.footnote)
                                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -111,7 +113,6 @@ struct FeedView: View {
                                 ForEach(viewModel.posts) { post in
                                     FeedCell(post: post, userProfileView: false)
                                 }
-                                
                             }
                             .padding(.top, 4)
                             
@@ -131,32 +132,31 @@ struct FeedView: View {
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
-                            NavigationLink(destination: AddOrSearchView().hideTabBar()) {
+                            Button(action: {
+                                withAnimation(.easeInOut) {
+                                    isShowingLeftView.toggle()
+                                }
+                                impactFeedbackGenerator.prepare()
+                                impactFeedbackGenerator.impactOccurred()
+                            }) {
                                 ZStack {
                                     Image(systemName: "person.2.badge.gearshape.fill")
                                         .imageScale(.large)
                                     
-                                    // Add red dot if there are friend requests
                                     if !friendRequestsViewModel.friendRequests.isEmpty {
                                         Circle()
                                             .fill(Color.red)
                                             .frame(width: 10, height: 10)
-                                            .offset(x: 12, y: -10) // Position the red dot
+                                            .offset(x: 12, y: -10)
                                     }
                                 }
                             }
-                            .simultaneousGesture(
-                                TapGesture().onEnded {
-                                    impactFeedbackGenerator.prepare()
-                                    impactFeedbackGenerator.impactOccurred()
-                                }
-                            )
                         }
-                        ToolbarItem(placement: .principal) { // Center the image like a title
+                        ToolbarItem(placement: .principal) {
                             Image(colorScheme == .dark ? "weekly-light" : "weekly-dark")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(height: 35) // Adjust the size of the image
+                                .frame(height: 35)
                         }
                         ToolbarItem(placement: .topBarTrailing) {
                             NavigationLink(destination: MessagesView().hideTabBar()) {
@@ -164,12 +164,11 @@ struct FeedView: View {
                                     Image(systemName: "ellipsis.message.fill")
                                         .imageScale(.large)
                                     
-                                    // Add red dot if there are new messages
                                     if messagesViewModel.hasUnreadMessages {
                                         Circle()
                                             .fill(Color.red)
                                             .frame(width: 10, height: 10)
-                                            .offset(x: 12, y: -10) // Position the red dot
+                                            .offset(x: 12, y: -10)
                                     }
                                 }
                             }
@@ -182,29 +181,74 @@ struct FeedView: View {
                         }
                     }
                 }
+                .offset(x: backgroundOffset * 0.3)
+                    .animation(.easeInOut(duration: 0.3), value: isShowingLeftView)
+                
+                // Left slide-in view with swipe-to-dismiss
+                ZStack(alignment: .leading) {
+                    if isShowingLeftView {
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                withAnimation(.easeInOut) {
+                                    isShowingLeftView = false
+                                }
+                            }
+                        
+                        AddOrSearchView(isPresented: $isShowingLeftView)
+                            .hideTabBar()
+                            .frame(width: UIScreen.main.bounds.width)
+                            .background(Color(.systemBackground))
+                            .offset(x: dragOffset)
+                            .gesture(
+                                DragGesture()
+                                    .onChanged { value in
+                                        let screenWidth = UIScreen.main.bounds.width
+                                        // Allow dragging if it starts within 100 points of the right edge and moves left
+                                        if value.startLocation.x > (screenWidth - 100) && value.translation.width < 0 {
+                                            dragOffset = value.translation.width
+                                            backgroundOffset = (UIScreen.main.bounds.width) + (value.translation.width)
+                                        }
+                                    }
+                                    .onEnded { value in
+                                        let screenWidth = UIScreen.main.bounds.width
+                                        if value.startLocation.x > (screenWidth - 100) && -value.translation.width > screenWidth * 0.4 {
+                                            withAnimation(.easeInOut) {
+                                                isShowingLeftView = false
+                                            }
+                                        }
+                                        withAnimation(.easeInOut) {
+                                            dragOffset = 0
+                                        }
+                                    }
+                            )
+                            .transition(.move(edge: .leading))
+                            .zIndex(1)
+                    }
+                }
+            }
+        }
+        .onChange(of: isShowingLeftView) { // Updated syntax
+            withAnimation(.easeInOut(duration: 0.3)) {
+                backgroundOffset = isShowingLeftView ? UIScreen.main.bounds.width * 0.85 : 0
             }
         }
         .onAppear {
             viewModel.getDisplayTimeToPostMessage()
             Task {
-                if viewModel.posts.isEmpty { // Only fetch if there are no cached posts
-                    // print("starting splash wait")
+                if viewModel.posts.isEmpty {
                     await hideSplashScreenWithDelay()
                 } else {
                     isShowingSplash = false
                 }
             }
             Task {
-                if viewModel.posts.isEmpty { // Only fetch if there are no cached posts
-                    // print("starting fetch posts")
+                if viewModel.posts.isEmpty {
                     try await viewModel.fetchPosts()
                     isLoading = false
-                    //isShowingSplash = false
-                    // print("loading done 1, killing splash")
                 } else {
-                    isLoading = false // Skip loading if posts already exist
+                    isLoading = false
                     isShowingSplash = false
-                    // print("loading done 2")
                 }
             }
             viewModel.listenToPosts()
@@ -232,17 +276,17 @@ struct SplashScreenView: View {
     
     var body: some View {
         ZStack {
-            Color(.systemBackground) // Matches system theme
+            Color(.systemBackground)
                 .ignoresSafeArea()
             
             Image(colorScheme == .dark ? "weekly-light" : "weekly-dark")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 200, height: 200) // Adjust size as needed
-                .opacity(opacity) // Use the state for opacity
+                .frame(width: 200, height: 200)
+                .opacity(opacity)
                 .onAppear {
                     withAnimation(.easeIn(duration: 0.5)) {
-                        opacity = 0.9 // Fade-in effect
+                        opacity = 0.9
                     }
                 }
         }
