@@ -25,34 +25,94 @@ class AddOrSearchViewModel: ObservableObject {
         listenToFriends()
         listenToAllUsers()
         listenToFriendRequests()
+        listenToSuggestedUsers()
     }
     
     // Suggested Users Listener
     func listenToSuggestedUsers() {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-        
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("No current user UID found")
+            return
+        }
         suggestUsersListener = Firestore.firestore()
             .collection("users")
-            .addSnapshotListener { snapshot, error in
+            .document(uid)
+            .addSnapshotListener { [weak self] documentSnapshot, error in
+                guard let self = self else { return }
+                
                 if let error = error {
-                    print("Error listening to suggested users: \(error.localizedDescription)")
+                    print("Snapshot listener error: \(error.localizedDescription)")
                     return
                 }
                 
-                guard let documents = snapshot?.documents else { return }
+                guard documentSnapshot != nil else {
+                    print("No document snapshot received")
+                    return
+                }
                 
                 Task {
-                    let fetchedUsers = documents.compactMap { document -> User? in
-                        try? document.data(as: User.self)
+                    // 1. Get current user's friends
+                    let friendDocs = try? await Firestore.firestore()
+                        .collection("users")
+                        .document(uid)
+                        .collection("friends")
+                        .getDocuments()
+                    
+                    let friendIds = friendDocs?.documents.compactMap { document in
+                        // Extract friendUid from the document data
+                        document.data()["friendUid"] as? String
+                    } ?? []
+                    
+                    guard !friendIds.isEmpty else {
+                        print("User has no friends, setting empty suggestions")
+                        await MainActor.run {
+                            self.suggestedUsers = []
+                        }
+                        return
                     }
                     
-                    // Filter out the current user
-                    let filteredUsers = fetchedUsers.filter { user in
-                        user.id != uid && !self.friends.contains(where: { $0.id == user.id })
+                    // 2. Fetch friends of friends
+                    var friendsOfFriends: Set<String> = []
+                    for friendId in friendIds {
+                        do {
+                            let fofDocs = try await Firestore.firestore()
+                                .collection("users")
+                                .document(friendId)
+                                .collection("friends")
+                                .getDocuments()
+                            
+                            let fofIds = fofDocs.documents.compactMap { document -> String? in
+                                // Extract friendUid from each friend's friends
+                                document.data()["friendUid"] as? String
+                            }
+                            friendsOfFriends.formUnion(fofIds)
+                        } catch {
+                            print("Error fetching friends for \(friendId): \(error.localizedDescription)")
+                        }
                     }
                     
+                    // 3. Filter out current user and direct friends
+                    friendsOfFriends.remove(uid)
+                    friendsOfFriends.subtract(friendIds)
+                    
+                    // 4. Fetch user details
+                    let suggestedUsers: [User]
+                    if !friendsOfFriends.isEmpty {
+                        let suggestedUserDocs = try? await Firestore.firestore()
+                            .collection("users")
+                            .whereField(FieldPath.documentID(), in: Array(friendsOfFriends))
+                            .getDocuments()
+                        
+                        suggestedUsers = suggestedUserDocs?.documents.compactMap { document -> User? in
+                            try? document.data(as: User.self)
+                        } ?? []
+                    } else {
+                        suggestedUsers = []
+                    }
+                    
+                    // 5. Update UI
                     await MainActor.run {
-                        self.suggestedUsers = filteredUsers
+                        self.suggestedUsers = suggestedUsers
                     }
                 }
             }

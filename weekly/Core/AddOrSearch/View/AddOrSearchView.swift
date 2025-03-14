@@ -190,7 +190,7 @@ struct AddOrSearchView: View {
                     }
                 }
                 .padding(.top, 8)
-                .searchable(text: $searchText, prompt: "Add or search friends")
+                .searchable(text: $searchText, prompt: "Search all users")
                 
                 if (!searchText.isEmpty && filteredUsers.count == 0) {
                     Text("No users found")
@@ -214,11 +214,6 @@ struct AddOrSearchView: View {
                     }
                 }
             }
-        }
-        .onAppear {
-            viewModel.listenToFriendRequests()
-            viewModel.listenToFriends()
-            viewModel.listenToSuggestedUsers()
         }
         .onDisappear {
             viewModel.stopListening() // Stop listeners when the view disappears
