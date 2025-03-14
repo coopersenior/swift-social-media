@@ -68,7 +68,7 @@ struct FriendsListView: View {
             .onDisappear {
                 viewModel.stopListening()
             }
-            .navigationTitle(user.username) // username of who we are on
+            .navigationTitle("@\(user.username)") // username of who we are on
             .navigationBarTitleDisplayMode(.inline)
         }
     }

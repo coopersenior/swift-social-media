@@ -191,6 +191,13 @@ struct AddOrSearchView: View {
                 }
                 .padding(.top, 8)
                 .searchable(text: $searchText, prompt: "Add or search friends")
+                
+                if (!searchText.isEmpty && filteredUsers.count == 0) {
+                    Text("No users found")
+                        .font(.footnote)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                }
             }
             .scrollIndicators(.hidden)
             .navigationTitle("Manage Friends")

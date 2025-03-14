@@ -14,8 +14,44 @@ struct PostService {
     static let postResetDate = 6 // 6 for Friday, 2 for Monday
     
     static func fetchFeedPosts(uid: String) async throws -> [Post] {
+        var hasDecodingError = false
+        
         let snapshot = try await postsCollection.getDocuments()
-        var posts = try snapshot.documents.compactMap({ try $0.data(as: Post.self) })
+
+        var posts: [Post] = snapshot.documents.compactMap { document in
+            do {
+                return try document.data(as: Post.self)
+            } catch {
+                print("Skipping document: \(document.documentID), error: \(error)")
+                hasDecodingError = true // Flag for cache reset
+                return nil
+            }
+        }
+
+        // If missing data was found, remove that document
+        if hasDecodingError {
+            var posts: [Post] = []
+            // Iterate over documents and attempt to decode each
+            for document in snapshot.documents {
+                do {
+                    // Attempt to decode the document to a Post object
+                    if let post = try? document.data(as: Post.self) {
+                        posts.append(post)  // Add valid post to the array
+                    } else {
+                        // If decoding fails, delete the problematic document from Firestore
+                        print("Skipping and deleting document: \(document.documentID), decoding failed")
+
+                        // Delete the document from Firestore
+                        do {
+                            try await postsCollection.document(document.documentID).delete()
+                            print("Deleted problematic document: \(document.documentID)")
+                        } catch {
+                            print("Failed to delete document: \(document.documentID), error: \(error)")
+                        }
+                    }
+                }
+            }
+        }
         // Fetch user data
         let hasPosted = try await checkHasPosted(uid: uid)
         let userPostsCount = try await numberOfUserPosts(uid: uid)
