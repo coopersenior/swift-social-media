@@ -170,20 +170,29 @@ struct MessageVew: View {
                                 .frame(maxWidth: 260, alignment: .leading)
                         } else {
                             // loading state
-                            VStack {
-                                Image(systemName: "exclamationmark.icloud")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 100, height: 100)
-                                
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle())
-                                    .padding()
+                            HStack {
+                                CircularProfileImageView(user: user, size: .xSmall)
+                                VStack {
+                                    Image(systemName: "exclamationmark.icloud")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 100, height: 100)
+                                    
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                        .padding()
+                                }
+                                .frame(width: 200, height: 200)
+                                .padding()
+                                .background(Color(uiColor: .systemGray5))
+                                .cornerRadius(15)
                             }
-                            .frame(width: 200, height: 200)
-                            .padding()
-                            .background(Color(uiColor: .systemGray5))
-                            .cornerRadius(15)
+                            Text(timeElapsed)
+                                .font(.footnote)
+                                .padding(.top, 0.5)
+                                .padding(.leading, 30)
+                                .foregroundStyle(.gray)
+                                .frame(maxWidth: 260, alignment: .leading)
                         }
                     } else {
                         HStack {
